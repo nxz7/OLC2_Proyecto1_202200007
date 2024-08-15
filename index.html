@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAKLAND</title>
+  <style>
+    body {
+      background-color: #595275;
+      color: #a2abd7;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      color: #ffffff;
+      text-align: center;
+      font-weight: bold;
+      font-size: larger;
+      margin-top: 20px;
+    }
+
+    .flex-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    .flex-container textarea {
+      margin: 10px 0;
+      width: 65%;
+      height: 277px;
+      padding: 8px;
+      border: 3px solid #132043;
+      border-radius: 10px;
+      resize: none;
+      background-color: #f0f0f0;
+    }
+
+    .flex-container button {
+      margin: 10px;
+      background-color: #efc4c9;
+      color: rgb(60, 25, 25);
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 150px;
+    }
+
+    button:hover {
+      background-color: #132043;
+    }
+
+    #editor {
+      background-color: rgb(107, 114, 126);
+      color: rgb(187, 185, 75);
+    }
+
+    #ast, #salida {
+      background-color: black;
+      color: rgb(165, 237, 224);
+    }
+
+    .flex-container label {
+      margin-top: 20px;
+      color: #ffffff;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Proyecto 1 - 202200007</h1>
+
+  <div class="flex-container">
+    <textarea id="editor" placeholder="Ingrese expresión..."></textarea>
+    <button id="btn">Ejecutar</button>
+  </div>
+
+  <div class="flex-container">
+    <label for="ast">AST</label>
+    <textarea id="ast" readonly></textarea>
+    <label for="salida">Salida</label>
+    <textarea id="salida" readonly></textarea>
+  </div>
+
+  <script type="module" src="index.js"></script>
+</body>
+
+</html>
