@@ -31,6 +31,20 @@ export class Expresion  {
         */
         this.location = null;
 
+
+        /**
+         * tipo del resultado de la expresion
+         * @type {string}
+        */
+        this.tipo = null;
+
+
+        /**
+         * valor de la expresion
+         * @type {any}
+        */
+        this.valor = null;
+
     }
 
     /**

@@ -29,13 +29,130 @@ export class InterpreterVisitor extends BaseVisitor {
 
         switch (node.op) {
             case '+':
-                return izq + der;
+                // tipado
+                if (tipoIzq === 'int' && tipoDer === 'int') {
+                    node.tipo = 'int';
+                    node.valor = izq + der;
+                    return node.valor;
+
+                } else if (tipoIzq === 'float' || tipoDer === 'float') {
+                    node.tipo = 'float';
+                    node.valor = izq + der;
+                    return parseFloat(node.valor);
+                } else if (tipoIzq === 'float' && tipoDer === 'float') {
+                    node.tipo = 'float';
+                    node.valor = izq + der;
+                    return parseFloat(node.valor);
+                }   
+                else if (tipoIzq === 'string' && tipoDer === 'string') {
+                    node.tipo = 'string';
+                    node.valor = izq + der;
+                    return node.valor;
+                }
+                else {
+                    //-----------------ERROR ---------------
+                    console.error("Error de tipado");
+                    node.tipo = 'error';
+                    node.valor = null;
+                    throw new Error(`Error de tipado: ${tipoIzq} + ${tipoDer}`);
+                }
             case '-':
-                return izq - der;
+                if (tipoIzq === 'int' && tipoDer === 'int') {
+                    node.tipo = 'int';
+                    node.valor = izq - der;
+                    return node.valor;
+
+                } else if (tipoIzq === 'float' || tipoDer === 'float') {
+                    node.tipo = 'float';
+                    node.valor = izq - der;
+                    return parseFloat(node.valor);
+                } else if (tipoIzq === 'float' && tipoDer === 'float') {
+                    node.tipo = 'float';
+                    node.valor = izq - der;
+                    return parseFloat(node.valor);
+                }   
+                else {
+                    //-----------------ERROR ---------------
+                    console.error("Error de tipado");
+                    node.tipo = 'error';
+                    node.valor = null;
+                    throw new Error(`Error de tipado: ${tipoIzq} + ${tipoDer}`);
+                }
+    
             case '*':
-                return izq * der;
+
+                if (tipoIzq === 'int' && tipoDer === 'int') {
+                    node.tipo = 'int';
+                    node.valor = izq * der;
+                    return node.valor;
+
+                } else if (tipoIzq === 'float' || tipoDer === 'float') {
+                    node.tipo = 'float';
+                    node.valor = izq * der;
+                    return parseFloat(node.valor);
+
+                } else if (tipoIzq === 'float' && tipoDer === 'float') {
+                    node.tipo = 'float';
+                    node.valor = izq * der;
+                    return parseFloat(node.valor);
+
+                }   
+                else {
+                    //-----------------ERROR ---------------
+                    console.error("Error de tipado");
+                    node.tipo = 'error';
+                    node.valor = null;
+                    throw new Error(`Error de tipado: ${tipoIzq} + ${tipoDer}`);
+                }
+    
             case '/':
-                return izq / der;
+                if (der === 0) {
+                    // error de division por cero
+                    console.error("Error: División por cero");
+                    node.tipo = 'error';
+                    node.valor = null;
+                    throw new Error("División por cero no permitida");
+                } else if (tipoIzq === 'int' && tipoDer === 'int') {
+                    node.tipo = 'int';
+                    node.valor = izq / der;
+                    return node.valor;
+            
+                } else if (tipoIzq === 'float' || tipoDer === 'float') {
+                    node.tipo = 'float';
+                    node.valor = izq / der;
+                    return parseFloat(node.valor);
+            
+                } else if (tipoIzq === 'float' && tipoDer === 'float') {
+                    node.tipo = 'float';
+                    node.valor = izq / der;
+                    return parseFloat(node.valor);
+            
+                } else {
+                    //-----------------ERROR ---------------
+                    console.error("Error de tipado");
+                    node.tipo = 'error';
+                    node.valor = null;
+                    throw new Error(`Error de tipado: ${tipoIzq} / ${tipoDer}`);
+                }
+            case '%':
+                if (der === 0) {
+                    // error de division por cero
+                    console.error("Error: División por cero");
+                    node.tipo = 'error';
+                    node.valor = null;
+                    throw new Error("División por cero no permitida");
+                } else if (tipoIzq === 'int' && tipoDer === 'int') {
+                    node.tipo = 'int';
+                    node.valor = izq % der;
+                    return node.valor;
+            
+                }  else {
+                    //-----------------ERROR ---------------
+                    console.error("Error de tipado");
+                    node.tipo = 'error';
+                    node.valor = null;
+                    throw new Error(`Error de tipado: ${tipoIzq} % ${tipoDer}`);
+                }
             default:
                 throw new Error(`Operador no soportado: ${node.op}`);
         }
@@ -49,7 +166,10 @@ export class InterpreterVisitor extends BaseVisitor {
 
         switch (node.op) {
             case '-':
-                return -exp;
+                node.valor = -exp;
+                node.tipo = node.exp.tipo;
+                console.log("OperacionUnaria", node.valor, node.tipo);
+                return node.valor;
             default:
                 throw new Error(`Operador no soportado: ${node.op}`);
         }
@@ -59,7 +179,13 @@ export class InterpreterVisitor extends BaseVisitor {
       * @type {BaseVisitor['visitAgrupacion']}
       */
     visitAgrupacion(node) {
-        return node.exp.accept(this);
+        const valor = node.exp.accept(this);
+
+        node.valor= node.exp.valor;
+        node.tipo = node.exp.tipo;
+        console.log("Agrupacion", node.valor, node.tipo);
+        return valor;
+
     }
 
     /**
@@ -70,10 +196,11 @@ export class InterpreterVisitor extends BaseVisitor {
             // quita las ""
             if (node.valor.length > 1 &&
                 ((node.valor.startsWith('"') && node.valor.endsWith('"')) || 
-                 (node.valor.startsWith("'") && node.valor.endsWith("'")))) {
+                (node.valor.startsWith("'") && node.valor.endsWith("'")))) {
                 node.valor = node.valor.slice(1, -1); // se actualiza el valor
             }
         }
+
         return node.valor;
     }
     
@@ -84,8 +211,17 @@ export class InterpreterVisitor extends BaseVisitor {
     visitDeclaracionVariable(node) {
         const nombreVariable = node.id;
         const valorVariable = node.exp.accept(this);
+        //AGREGAR  EL TIPADO NECESARIO
 
+        node.valor = valorVariable;
+        node.tipo = node.exp.tipo;
+
+        console.log("DeclaracionVariable", node.valor, node.tipo);
+
+
+//!!-------------------NECESARIOS GUARDAR EL TIPADO PARA REFERENCIA 
         this.entornoActual.setVariable(nombreVariable, valorVariable);
+        
     }
 
 

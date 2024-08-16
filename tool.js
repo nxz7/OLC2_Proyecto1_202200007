@@ -28,6 +28,18 @@ const configuracionNodos = [
                 type: 'Location|null',
                 description: 'Ubicacion del nodo en el codigo fuente',
                 default: 'null'
+            },
+            {
+                name: 'tipo',
+                type: 'string',
+                description: 'tipo del resultado de la expresion',
+                default: 'null'
+            },
+            {
+                name: 'valor',
+                type: 'any',
+                description: 'valor de la expresion',
+                default: 'null'
             }
         ]
     },
@@ -80,7 +92,7 @@ const configuracionNodos = [
             }
         ]
     },
-    
+
     {
         name: 'Primitivos',
         extends: 'Expresion',

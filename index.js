@@ -13,9 +13,9 @@ btn.addEventListener('click', () => {
 
     const interprete = new InterpreterVisitor()
 
-    console.log({ sentencias })
+    //console.log({ sentencias })
     sentencias.forEach(sentencia => sentencia.accept(interprete))
-
+    console.log({ sentencias })
     salida.innerHTML = interprete.salida
 })
 
