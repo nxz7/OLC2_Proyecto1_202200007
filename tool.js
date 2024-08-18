@@ -45,18 +45,18 @@ const configuracionNodos = [
     },
     // Configuracion de los nodos secundarios
     {
-        name: 'OperacionBinaria',
+        name: 'Operacion',
         extends: 'Expresion',
         props: [
             {
                 name: 'izq',
                 type: 'Expresion',
-                description: 'Expresion izquierda de la operacion'
+                description: ' izquierda de la operacion'
             },
             {
                 name: 'der',
                 type: 'Expresion',
-                description: 'Expresion derecha de la operacion'
+                description: ' derecha de la operacion'
             },
             {
                 name: 'op',
@@ -66,18 +66,18 @@ const configuracionNodos = [
         ]
     },
     {
-        name: 'OperacionUnaria',
+        name: 'Unaria',
         extends: 'Expresion',
         props: [
             {
                 name: 'exp',
                 type: 'Expresion',
-                description: 'Expresion de la operacion'
+                description: 'Expresion unaria'
             },
             {
                 name: 'op',
                 type: 'string',
-                description: 'Operador de la operacion'
+                description: 'Operador '
             }
         ]
     },

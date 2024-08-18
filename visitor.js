@@ -4,10 +4,10 @@
  * @typedef {import('./nodos').Expresion} Expresion
 
 
- * @typedef {import('./nodos').OperacionBinaria} OperacionBinaria
+ * @typedef {import('./nodos').Operacion} Operacion
 
 
- * @typedef {import('./nodos').OperacionUnaria} OperacionUnaria
+ * @typedef {import('./nodos').Unaria} Unaria
 
 
  * @typedef {import('./nodos').Agrupacion} Agrupacion
@@ -47,20 +47,20 @@ export class BaseVisitor {
     
 
     /**
-     * @param {OperacionBinaria} node
+     * @param {Operacion} node
      * @returns {any}
      */
-    visitOperacionBinaria(node) {
-        throw new Error('Metodo visitOperacionBinaria no implementado');
+    visitOperacion(node) {
+        throw new Error('Metodo visitOperacion no implementado');
     }
     
 
     /**
-     * @param {OperacionUnaria} node
+     * @param {Unaria} node
      * @returns {any}
      */
-    visitOperacionUnaria(node) {
-        throw new Error('Metodo visitOperacionUnaria no implementado');
+    visitUnaria(node) {
+        throw new Error('Metodo visitUnaria no implementado');
     }
     
 

@@ -21,6 +21,8 @@ export class Expresion  {
     /**
     * @param {Object} options
     * @param {Location|null} options.location Ubicacion del nodo en el codigo fuente
+ * @param {string} options.tipo tipo del resultado de la expresion
+ * @param {any} options.valor valor de la expresion
     */
     constructor() {
         
@@ -55,7 +57,7 @@ export class Expresion  {
     }
 }
     
-export class OperacionBinaria extends Expresion {
+export class Operacion extends Expresion {
 
     /**
     * @param {Object} options
@@ -92,11 +94,11 @@ export class OperacionBinaria extends Expresion {
      * @param {BaseVisitor} visitor
      */
     accept(visitor) {
-        return visitor.visitOperacionBinaria(this);
+        return visitor.visitOperacion(this);
     }
 }
     
-export class OperacionUnaria extends Expresion {
+export class Unaria extends Expresion {
 
     /**
     * @param {Object} options
@@ -125,7 +127,7 @@ export class OperacionUnaria extends Expresion {
      * @param {BaseVisitor} visitor
      */
     accept(visitor) {
-        return visitor.visitOperacionUnaria(this);
+        return visitor.visitUnaria(this);
     }
 }
     
@@ -295,4 +297,4 @@ export class ExpresionStatement extends Expresion {
     }
 }
     
-export default { Expresion, OperacionBinaria, OperacionUnaria, Agrupacion, Primitivos, DeclaracionVariable, ReferenciaVariable, Print, ExpresionStatement }
+export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVariable, ReferenciaVariable, Print, ExpresionStatement }

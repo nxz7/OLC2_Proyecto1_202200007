@@ -9,7 +9,7 @@ const salida = document.getElementById('salida')
 btn.addEventListener('click', () => {
     const codigoFuente = editor.value
     const sentencias = parse(codigoFuente)
-    ast.innerHTML = JSON.stringify(sentencias, null, 2)
+    //ast.innerHTML = JSON.stringify(sentencias, null, 2)
 
     const interprete = new InterpreterVisitor()
 

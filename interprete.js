@@ -16,9 +16,9 @@ export class InterpreterVisitor extends BaseVisitor {
 //AGREGAR ESTO ES SOLO PARA TENER LA INFO
 
     /**
-      * @type {BaseVisitor['visitOperacionBinaria']}
+      * @type {BaseVisitor['visitOperacion']}
       */
-    visitOperacionBinaria(node) {
+    visitOperacion(node) {
         //regresa el numero
         const izq = node.izq.accept(this);
         const der = node.der.accept(this);
@@ -153,23 +153,206 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.valor = null;
                     throw new Error(`Error de tipado: ${tipoIzq} % ${tipoDer}`);
                 }
+
+                case '>=':
+                    if ((tipoIzq === 'int' || tipoIzq === 'float') && (tipoDer === 'int' || tipoDer === 'float')) {
+                        node.tipo = 'boolean';
+                        node.valor = izq >= der;
+
+                        return node.valor;
+                    } else if (tipoIzq === 'char' && tipoDer === 'char') {
+                        const izqChar = izq.replace(/['"]+/g, '');
+                        const derChar = der.replace(/['"]+/g, '');
+                
+                        node.tipo = 'boolean';
+                        node.valor = izqChar.charCodeAt(0) >= derChar.charCodeAt(0);
+                        return node.valor;
+                    }
+                    else {
+                        //-----------------ERROR ---------------
+                        console.error("Error de tipado");
+                        node.tipo = 'error';
+                        node.valor = null;
+                        console.log("Error de tipado: ", tipoIzq, tipoDer);
+                        throw new Error(`Error de tipado: ${tipoIzq} >= ${tipoDer}`);
+                    }
+        
+                case '<=':
+                    if ((tipoIzq === 'int' || tipoIzq === 'float') && (tipoDer === 'int' || tipoDer === 'float')) {
+                        node.tipo = 'boolean';
+                        node.valor = izq <= der;
+                        return node.valor;
+                    } else if (tipoIzq === 'char' && tipoDer === 'char') {
+                        const izqChar = izq.replace(/['"]+/g, '');
+                        const derChar = der.replace(/['"]+/g, '');
+                
+                        node.tipo = 'boolean';
+                        node.valor = izqChar.charCodeAt(0) <= derChar.charCodeAt(0);
+                        return node.valor;
+                    }else {
+                        //-----------------ERROR ---------------
+                        console.error("Error de tipado");
+                        node.tipo = 'error';
+                        node.valor = null;
+                        throw new Error(`Error de tipado: ${tipoIzq} <= ${tipoDer}`);
+                    }
+
+                    case '>':
+                        if ((tipoIzq === 'int' || tipoIzq === 'float') && (tipoDer === 'int' || tipoDer === 'float')) {
+                            node.tipo = 'boolean';
+                            node.valor = izq > der;
+                            return node.valor;
+                        } else if (tipoIzq === 'char' && tipoDer === 'char') {
+                            const izqChar = izq.replace(/['"]+/g, '');
+                            const derChar = der.replace(/['"]+/g, '');
+                    
+                            node.tipo = 'boolean';
+                            node.valor = izqChar.charCodeAt(0) > derChar.charCodeAt(0);
+                            return node.valor;
+                        } else {
+                            //-----------------ERROR ---------------
+                            console.error("Error de tipado");
+                            node.tipo = 'error';
+                            node.valor = null;
+                            throw new Error(`Error de tipado: ${tipoIzq} > ${tipoDer}`);
+                        }
+            
+                    case '<':
+                        if ((tipoIzq === 'int' || tipoIzq === 'float') && (tipoDer === 'int' || tipoDer === 'float')) {
+                            node.tipo = 'boolean';
+                            node.valor = izq < der;
+                            return node.valor;
+                        } else if (tipoIzq === 'char' && tipoDer === 'char') {
+                            const izqChar = izq.replace(/['"]+/g, '');
+                            const derChar = der.replace(/['"]+/g, '');
+                    
+                            node.tipo = 'boolean';
+                            node.valor = izqChar.charCodeAt(0) < derChar.charCodeAt(0);
+                            return node.valor;
+                        } else {
+                            //-----------------ERROR ---------------
+                            console.error("Error de tipado");
+                            node.tipo = 'error';
+                            node.valor = null;
+                            throw new Error(`Error de tipado: ${tipoIzq} < ${tipoDer}`);
+                        }
+                    
+                        case '==':
+                            if ((tipoIzq === 'int' || tipoIzq === 'float') && (tipoDer === 'int' || tipoDer === 'float')) {
+                                node.tipo = 'boolean';
+                                node.valor = (izq == der);
+                                return node.valor;
+                            } else if (tipoIzq === 'boolean' && tipoDer === 'boolean') {
+    
+                                node.tipo = 'boolean';
+                                node.valor = (izq == der);
+                                return node.valor;
+                            } else if (tipoIzq === 'char' && tipoDer === 'char') {
+                                const izqChar = izq.replace(/['"]+/g, '');
+                                const derChar = der.replace(/['"]+/g, '');
+                        
+                                node.tipo = 'boolean';
+                                node.valor = (izqChar.charCodeAt(0) == derChar.charCodeAt(0));
+                                return node.valor;
+                            } else if (tipoIzq === 'string' && tipoDer === 'string') {
+                        
+                                node.tipo = 'boolean';
+                                node.valor = (izq == der);
+                                return node.valor;
+                            } else {
+                                //-----------------ERROR ---------------
+                                console.error("Error de tipado");
+                                node.tipo = 'error';
+                                node.valor = null;
+                                throw new Error(`Error de tipado: ${tipoIzq} < ${tipoDer}`);
+                            }
+                
+                        case '!=':
+                            if ((tipoIzq === 'int' || tipoIzq === 'float') && (tipoDer === 'int' || tipoDer === 'float')) {
+                                node.tipo = 'boolean';
+                                node.valor = (izq != der);
+                                return node.valor;
+                            } else if (tipoIzq === 'boolean' && tipoDer === 'boolean') {
+        
+                                node.tipo = 'boolean';
+                                node.valor = (izq != der);
+                                return node.valor;
+                            } else if (tipoIzq === 'char' && tipoDer === 'char') {
+                                const izqChar = izq.replace(/['"]+/g, '');
+                                const derChar = der.replace(/['"]+/g, '');
+                        
+                                node.tipo = 'boolean';
+                                node.valor = (izqChar.charCodeAt(0) != derChar.charCodeAt(0));
+                                return node.valor;
+                            } else if (tipoIzq === 'string' && tipoDer === 'string') {
+                        
+                                node.tipo = 'boolean';
+                                node.valor = (izq != der);
+                                return node.valor;
+                            } else {
+                                //-----------------ERROR ---------------
+                                console.error("Error de tipado");
+                                node.tipo = 'error';
+                                node.valor = null;
+                                throw new Error(`Error de tipado: ${tipoIzq} < ${tipoDer}`);
+                            }
+
+                            case '&&':
+                                if ((tipoIzq === 'boolean') && ( tipoDer === 'boolean')) {
+                                    node.tipo = 'boolean';
+                                    node.valor = izq && der;
+                                    return node.valor;
+                                } else {
+                                    //-----------------ERROR ---------------
+                                    console.error("Error de tipado");
+                                    node.tipo = 'error';
+                                    node.valor = null;
+                                    throw new Error(`Error de tipado: ${tipoIzq} > ${tipoDer}`);
+                                }
+        
+                            case '||':
+                                if ((tipoIzq === 'boolean') && ( tipoDer === 'boolean')) {
+                                    node.tipo = 'boolean';
+                                    node.valor = izq || der;
+                                    return node.valor;
+                                } else {
+                                    //-----------------ERROR ---------------
+                                    console.error("Error de tipado");
+                                    node.tipo = 'error';
+                                    node.valor = null;
+                                    throw new Error(`Error de tipado: ${tipoIzq} > ${tipoDer}`);
+                                }
             default:
                 throw new Error(`Operador no soportado: ${node.op}`);
         }
     }
 
     /**
-      * @type {BaseVisitor['visitOperacionUnaria']}
+      * @type {BaseVisitor['visitUnaria']}
       */
-    visitOperacionUnaria(node) {
+    visitUnaria(node) {
         const exp = node.exp.accept(this);
 
         switch (node.op) {
             case '-':
+                if (node.exp.tipo === 'int'||node.exp.tipo === 'float') {
                 node.valor = -exp;
                 node.tipo = node.exp.tipo;
-                console.log("OperacionUnaria", node.valor, node.tipo);
+                console.log("Unaria", node.valor, node.tipo);
                 return node.valor;
+            } else {
+                throw new Error(`Error de tipos: Se esperaba un valor int/float en la operación '!', pero se encontró ${node.exp.tipo}.`);
+            }
+
+            case '!':
+                if (node.exp.tipo === 'boolean') {
+                    node.valor = !exp;
+                    node.tipo = 'boolean';
+                    console.log("Unaria", node.valor, node.tipo);
+                    return node.valor;
+                } else {
+                    throw new Error(`Error de tipos: Se esperaba un valor booleano en la operación '!', pero se encontró ${node.exp.tipo}.`);
+                }
             default:
                 throw new Error(`Operador no soportado: ${node.op}`);
         }
