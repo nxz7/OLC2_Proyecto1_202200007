@@ -24,6 +24,7 @@ function peg$SyntaxError(message, expected, found, location) {
   return self;
 }
 
+//----
 peg$subclass(peg$SyntaxError, Error);
 
 function peg$padEnd(str, targetLength, padString) {
