@@ -1,9 +1,9 @@
 
 {
-  //jala los metodos creados para visitar
+  //-------------------------llama los visit
   const crearNodo = (tipoNodo, props) =>{
     const tipos = {
-      //se pone el nombre de los que esta en nodos
+      //se pone el nombre de los que esta en NODOS.JS
       'agrupacion': nodos.Agrupacion,
       'Primitivos': nodos.Primitivos,
       'operacion': nodos.Operacion,
@@ -11,7 +11,12 @@
       'declaracionVariable': nodos.DeclaracionVariable,
       'referenciaVariable': nodos.ReferenciaVariable,
       'print': nodos.Print,
-      'expresionStatement': nodos.ExpresionStatement
+      'expresionStatement': nodos.ExpresionStatement,
+      'if': nodos.If,
+      'while': nodos.While,
+      'assign': nodos.Assign,
+      'brackets': nodos.Brackets
+
     }
 
     const nodo = new tipos[tipoNodo](props)
@@ -22,13 +27,27 @@
 
 programa = _ decl:Declaracion* _ { return decl }
 
+//>MAIN
 Declaracion = decl:DecVariable _ { return decl }
             / statement:Statement _ { return statement }
 
+//---------------declaracion de variables, clases y funciones
 DecVariable = "var" _ id:ID _ "=" _ exp:Expresion _ ";" { return crearNodo('declaracionVariable', { id, exp }) }
 
+
+//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+//----------------aca van los print, if else y todo tipo de statements ---------------
 Statement = "System.out.println(" _ exp:Expresion _ ")" _ ";" { return crearNodo('print', { exp }) }
     / exp:Expresion _ ";" { return crearNodo('expresionStatement', { exp }) }
+    / "{" _ decl:Declaracion* _ "}" { return crearNodo('brackets', { declaraciones:decl }) }
+    / "while" _ "(" _ condition:Expresion _ ")" _ whileBracket:Statement { return crearNodo('while', { condition, whileBracket }) }
+    / "if" _ "(" _ condition:Expresion _ ")" _ trueBracket:Statement
+      falseBracket:(
+        _ "else" _ falseBracket:Statement { return falseBracket } 
+      )? { return crearNodo('if', { condition, trueBracket, falseBracket }) }
+
+//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 //restriccion de NO empezar con un numero
 ID = [a-zA-Z_][a-zA-Z0-9_]* { return text() }
@@ -37,8 +56,11 @@ Charr = "\'" [^\']* "\'" { return text() }
 
 //---------------------------------------
 
-Expresion = logicoOr
+Expresion = Assign
 
+
+Assign = id:ID _ "=" _ assign:Assign { return crearNodo('assign', { id, assign }) }
+          / logicoOr
 
 logicoOr = izq:logicoAnd expansion:(
   _ op:("||") _ der:logicoAnd { return { tipo: op, der } }
@@ -116,14 +138,14 @@ Multiplicacion = izq:Unaria expansion:(
     )
 }
 
-Unaria = ope:("-"/"!") _ num:Numero { return crearNodo('unaria', { op: ope, exp: num }) }
-/ Numero
+Unaria = ope:("-"/"!") _ num:Prim { return crearNodo('unaria', { op: ope, exp: num }) }
+/ Prim
 
 tipoFloat =[0-9]+( "." [0-9]+ ) {return parseFloat(text(), 10)}
 tipoInt = [0-9]+ {return parseInt(text(), 10)}
 
 
-Numero =   floatN:tipoFloat {return crearNodo('Primitivos', { valor: floatN, tipo: "float" })}
+Prim =   floatN:tipoFloat {return crearNodo('Primitivos', { valor: floatN, tipo: "float" })}
   / intN:tipoInt {return crearNodo('Primitivos', { valor: intN, tipo: "int" })}
   /"true" {return crearNodo('Primitivos', { valor: true, tipo: "boolean" })}
   /"false" {return crearNodo('Primitivos', { valor: false, tipo: "boolean" })}
@@ -136,3 +158,4 @@ Numero =   floatN:tipoFloat {return crearNodo('Primitivos', { valor: floatN, tip
 
 
 _ = [ \t\n\r]*
+

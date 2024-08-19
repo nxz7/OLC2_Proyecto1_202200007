@@ -61,22 +61,22 @@ export class Operacion extends Expresion {
 
     /**
     * @param {Object} options
-    * @param {Expresion} options.izq Expresion izquierda de la operacion
- * @param {Expresion} options.der Expresion derecha de la operacion
+    * @param {Expresion} options.izq  izquierda de la operacion
+ * @param {Expresion} options.der  derecha de la operacion
  * @param {string} options.op Operador de la operacion
     */
     constructor({ izq, der, op }) {
         super();
         
         /**
-         * Expresion izquierda de la operacion
+         *  izquierda de la operacion
          * @type {Expresion}
         */
         this.izq = izq;
 
 
         /**
-         * Expresion derecha de la operacion
+         *  derecha de la operacion
          * @type {Expresion}
         */
         this.der = der;
@@ -102,21 +102,21 @@ export class Unaria extends Expresion {
 
     /**
     * @param {Object} options
-    * @param {Expresion} options.exp Expresion de la operacion
- * @param {string} options.op Operador de la operacion
+    * @param {Expresion} options.exp Expresion unaria
+ * @param {string} options.op Operador 
     */
     constructor({ exp, op }) {
         super();
         
         /**
-         * Expresion de la operacion
+         * Expresion unaria
          * @type {Expresion}
         */
         this.exp = exp;
 
 
         /**
-         * Operador de la operacion
+         * Operador 
          * @type {string}
         */
         this.op = op;
@@ -297,4 +297,136 @@ export class ExpresionStatement extends Expresion {
     }
 }
     
-export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVariable, ReferenciaVariable, Print, ExpresionStatement }
+export class Assign extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {string} options.id nombre de lo que se va a asignar
+ * @param {Expresion} options.assign lo que se le va a asignar al ID
+    */
+    constructor({ id, assign }) {
+        super();
+        
+        /**
+         * nombre de lo que se va a asignar
+         * @type {string}
+        */
+        this.id = id;
+
+
+        /**
+         * lo que se le va a asignar al ID
+         * @type {Expresion}
+        */
+        this.assign = assign;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitAssign(this);
+    }
+}
+    
+export class If extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion} options.condition Condicion if(--)
+ * @param {Expresion} options.trueBracket trueBracket -> ejecuta si la condicion es verdadera
+ * @param {Expresion|undefined} options.falseBracket falseBracket -> ejecuta si la condicion es falsa
+    */
+    constructor({ condition, trueBracket, falseBracket }) {
+        super();
+        
+        /**
+         * Condicion if(--)
+         * @type {Expresion}
+        */
+        this.condition = condition;
+
+
+        /**
+         * trueBracket -> ejecuta si la condicion es verdadera
+         * @type {Expresion}
+        */
+        this.trueBracket = trueBracket;
+
+
+        /**
+         * falseBracket -> ejecuta si la condicion es falsa
+         * @type {Expresion|undefined}
+        */
+        this.falseBracket = falseBracket;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitIf(this);
+    }
+}
+    
+export class While extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion} options.condition Condicion  - While (--)
+ * @param {Expresion} options.whileBracket whileBracket --> ejecuta mientras la condicion sea verdadera
+    */
+    constructor({ condition, whileBracket }) {
+        super();
+        
+        /**
+         * Condicion  - While (--)
+         * @type {Expresion}
+        */
+        this.condition = condition;
+
+
+        /**
+         * whileBracket --> ejecuta mientras la condicion sea verdadera
+         * @type {Expresion}
+        */
+        this.whileBracket = whileBracket;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitWhile(this);
+    }
+}
+    
+export class Brackets extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion[]} options.declaraciones entorno bracketse declarado
+    */
+    constructor({ declaraciones }) {
+        super();
+        
+        /**
+         * entorno bracketse declarado
+         * @type {Expresion[]}
+        */
+        this.declaraciones = declaraciones;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitBrackets(this);
+    }
+}
+    
+export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVariable, ReferenciaVariable, Print, ExpresionStatement, Assign, If, While, Brackets }

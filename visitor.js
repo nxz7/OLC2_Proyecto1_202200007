@@ -1,31 +1,43 @@
 
 /**
 
- * @typedef {import('./nodos').Expresion} Expresion
+ * @typedef {import('./nodos.js').Expresion} Expresion
 
 
- * @typedef {import('./nodos').Operacion} Operacion
+ * @typedef {import('./nodos.js').Operacion} Operacion
 
 
- * @typedef {import('./nodos').Unaria} Unaria
+ * @typedef {import('./nodos.js').Unaria} Unaria
 
 
- * @typedef {import('./nodos').Agrupacion} Agrupacion
+ * @typedef {import('./nodos.js').Agrupacion} Agrupacion
 
 
- * @typedef {import('./nodos').Primitivos} Primitivos
+ * @typedef {import('./nodos.js').Primitivos} Primitivos
 
 
- * @typedef {import('./nodos').DeclaracionVariable} DeclaracionVariable
+ * @typedef {import('./nodos.js').DeclaracionVariable} DeclaracionVariable
 
 
- * @typedef {import('./nodos').ReferenciaVariable} ReferenciaVariable
+ * @typedef {import('./nodos.js').ReferenciaVariable} ReferenciaVariable
 
 
- * @typedef {import('./nodos').Print} Print
+ * @typedef {import('./nodos.js').Print} Print
 
 
- * @typedef {import('./nodos').ExpresionStatement} ExpresionStatement
+ * @typedef {import('./nodos.js').ExpresionStatement} ExpresionStatement
+
+
+ * @typedef {import('./nodos.js').Assign} Assign
+
+
+ * @typedef {import('./nodos.js').If} If
+
+
+ * @typedef {import('./nodos.js').While} While
+
+
+ * @typedef {import('./nodos.js').Brackets} Brackets
 
  */
 
@@ -115,6 +127,42 @@ export class BaseVisitor {
      */
     visitExpresionStatement(node) {
         throw new Error('Metodo visitExpresionStatement no implementado');
+    }
+    
+
+    /**
+     * @param {Assign} node
+     * @returns {any}
+     */
+    visitAssign(node) {
+        throw new Error('Metodo visitAssign no implementado');
+    }
+    
+
+    /**
+     * @param {If} node
+     * @returns {any}
+     */
+    visitIf(node) {
+        throw new Error('Metodo visitIf no implementado');
+    }
+    
+
+    /**
+     * @param {While} node
+     * @returns {any}
+     */
+    visitWhile(node) {
+        throw new Error('Metodo visitWhile no implementado');
+    }
+    
+
+    /**
+     * @param {Brackets} node
+     * @returns {any}
+     */
+    visitBrackets(node) {
+        throw new Error('Metodo visitBrackets no implementado');
     }
     
 }

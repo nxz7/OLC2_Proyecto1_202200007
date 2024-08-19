@@ -7,9 +7,10 @@ export class InterpreterVisitor extends BaseVisitor {
 
     constructor() {
         super();
+        //nuevos entornos con nuevos bloques!!
         this.entornoActual = new Entorno();
 
-        //LA RESPUESTA QUE SE VA A MOSTRAR
+        //LA RESPUESTA QUE SE VA A MOSTRAR en sonsola
         this.salida = '';
     }
 
@@ -387,6 +388,18 @@ export class InterpreterVisitor extends BaseVisitor {
         return node.valor;
     }
     
+    /**
+     * @type {BaseVisitor['visitBrackets']}
+     */
+    visitBrackets(node) {
+        const previousEn = this.entornoActual;
+        this.entornoActual = new Entorno(previousEn);
+//no eliminando solo apuntando 
+        node.declaraciones.forEach(declacion => declacion.accept(this));
+
+        this.entornoActual = previousEn;
+    }
+
 
     /**
      * @type {BaseVisitor['visitDeclaracionVariable']}
@@ -399,7 +412,7 @@ export class InterpreterVisitor extends BaseVisitor {
         node.valor = valorVariable;
         node.tipo = node.exp.tipo;
 
-        console.log("DeclaracionVariable", node.valor, node.tipo);
+        console.log("DeclaracionVariable:", node.valor, node.tipo);
 
 
 //!!-------------------NECESARIOS GUARDAR EL TIPADO PARA REFERENCIA 
@@ -421,10 +434,42 @@ export class InterpreterVisitor extends BaseVisitor {
       * @type {BaseVisitor['visitPrint']}
       */
 
+//----------->>>>>>>>>>>>STATEMENTS
     //SI HAY UN NUMERO/STRING DEVUELVE EL OBJETO, EN CAMBIO SI YA PASO POR SUMA RESTA ETC DEVUELVE EL VALOR
     visitPrint(node) {
         const valorPrint = node.exp.accept(this);
         this.salida += valorPrint + '\n';
+    }
+
+//IF
+    /**
+     * @type {BaseVisitor['visitIf']}
+     */
+    visitIf(node) {
+        try {
+            const conditionIf = node.condition.accept(this);
+        
+            if (conditionIf) {
+                node.trueBracket.accept(this);
+            } else if (node.falseBracket) {
+                node.falseBracket.accept(this);
+            }
+
+        } catch (error) {
+            console.error('Error  IF:', error);
+        }
+
+
+    }
+
+//WHILE
+    /**
+     * @type {BaseVisitor['visitWhile']}
+     */
+    visitWhile(node) {
+        while (node.condition.accept(this)) {
+            node.whileBracket.accept(this);
+        }
     }
 
 
@@ -433,6 +478,15 @@ export class InterpreterVisitor extends BaseVisitor {
       */
     visitExpresionStatement(node) {
         node.exp.accept(this);
+    }
+
+
+    visitAssign(node) {
+        //assign y id
+        const valor = node.assign.accept(this);
+        this.entornoActual.assignVariable(node.id, valor);
+
+        return valor;
     }
 
 }
