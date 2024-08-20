@@ -16,10 +16,13 @@
  * @typedef {import('./nodos.js').Primitivos} Primitivos
 
 
- * @typedef {import('./nodos.js').DeclaracionVariable} DeclaracionVariable
+ * @typedef {import('./nodos.js').DeclaracionVar} DeclaracionVar
 
 
- * @typedef {import('./nodos.js').ReferenciaVariable} ReferenciaVariable
+ * @typedef {import('./nodos.js').DeclaracionVarTipo} DeclaracionVarTipo
+
+
+ * @typedef {import('./nodos.js').RefVar} RefVar
 
 
  * @typedef {import('./nodos.js').Print} Print
@@ -95,20 +98,29 @@ export class BaseVisitor {
     
 
     /**
-     * @param {DeclaracionVariable} node
+     * @param {DeclaracionVar} node
      * @returns {any}
      */
-    visitDeclaracionVariable(node) {
-        throw new Error('Metodo visitDeclaracionVariable no implementado');
+    visitDeclaracionVar(node) {
+        throw new Error('Metodo visitDeclaracionVar no implementado');
     }
     
 
     /**
-     * @param {ReferenciaVariable} node
+     * @param {DeclaracionVarTipo} node
      * @returns {any}
      */
-    visitReferenciaVariable(node) {
-        throw new Error('Metodo visitReferenciaVariable no implementado');
+    visitDeclaracionVarTipo(node) {
+        throw new Error('Metodo visitDeclaracionVarTipo no implementado');
+    }
+    
+
+    /**
+     * @param {RefVar} node
+     * @returns {any}
+     */
+    visitRefVar(node) {
+        throw new Error('Metodo visitRefVar no implementado');
     }
     
 

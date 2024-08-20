@@ -1,10 +1,13 @@
 import { parse } from './analizador.js'
 import { InterpreterVisitor } from './interprete.js'
 
-const editor = document.getElementById('editor')
-const btn = document.getElementById('btn')
-const ast = document.getElementById('ast')
-const salida = document.getElementById('salida')
+const editor = document.getElementById('editor');
+const btn = document.getElementById('btn');
+const ast = document.getElementById('ast');
+const reportesBtn = document.getElementById('reportes-btn');
+const salida = document.getElementById('salida');
+
+
 
 btn.addEventListener('click', () => {
     const codigoFuente = editor.value
@@ -13,10 +16,11 @@ btn.addEventListener('click', () => {
 
     const interprete = new InterpreterVisitor()
 
-    //console.log({ sentencias })
+    console.log(sentencias);
     sentencias.forEach(sentencia => sentencia.accept(interprete))
     console.log({ sentencias })
-    salida.innerHTML = interprete.salida
+    salida.innerHTML = interprete.salida;
+    //interprete.entornoActual.generateHTMLTable();
 })
 
 //ESTE ARCHIVO NO TIENE LA LOGICA SOLO RECIBE EL INPUT Y LO ANALIZA

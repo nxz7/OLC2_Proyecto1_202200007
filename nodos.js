@@ -189,12 +189,12 @@ export class Primitivos extends Expresion {
     }
 }
     
-export class DeclaracionVariable extends Expresion {
+export class DeclaracionVar extends Expresion {
 
     /**
     * @param {Object} options
     * @param {string} options.id Identificador de la variable
- * @param {Expresion} options.exp Expresion de la variable
+ * @param {Expresion} options.exp VALOR DE LA VARIABLE
     */
     constructor({ id, exp }) {
         super();
@@ -207,7 +207,7 @@ export class DeclaracionVariable extends Expresion {
 
 
         /**
-         * Expresion de la variable
+         * VALOR DE LA VARIABLE
          * @type {Expresion}
         */
         this.exp = exp;
@@ -218,21 +218,62 @@ export class DeclaracionVariable extends Expresion {
      * @param {BaseVisitor} visitor
      */
     accept(visitor) {
-        return visitor.visitDeclaracionVariable(this);
+        return visitor.visitDeclaracionVar(this);
     }
 }
     
-export class ReferenciaVariable extends Expresion {
+export class DeclaracionVarTipo extends Expresion {
 
     /**
     * @param {Object} options
     * @param {string} options.id Identificador de la variable
+ * @param {Expresion} options.exp VALOR DE LA VARIABLE
+ * @param {string} options.tipoz tipo variable
+    */
+    constructor({ id, exp, tipoz }) {
+        super();
+        
+        /**
+         * Identificador de la variable
+         * @type {string}
+        */
+        this.id = id;
+
+
+        /**
+         * VALOR DE LA VARIABLE
+         * @type {Expresion}
+        */
+        this.exp = exp;
+
+
+        /**
+         * tipo variable
+         * @type {string}
+        */
+        this.tipoz = tipoz;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitDeclaracionVarTipo(this);
+    }
+}
+    
+export class RefVar extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {string} options.id ID PARA BUSCAR LA VARIABLE
     */
     constructor({ id }) {
         super();
         
         /**
-         * Identificador de la variable
+         * ID PARA BUSCAR LA VARIABLE
          * @type {string}
         */
         this.id = id;
@@ -243,7 +284,7 @@ export class ReferenciaVariable extends Expresion {
      * @param {BaseVisitor} visitor
      */
     accept(visitor) {
-        return visitor.visitReferenciaVariable(this);
+        return visitor.visitRefVar(this);
     }
 }
     
@@ -429,4 +470,4 @@ export class Brackets extends Expresion {
     }
 }
     
-export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVariable, ReferenciaVariable, Print, ExpresionStatement, Assign, If, While, Brackets }
+export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Brackets }

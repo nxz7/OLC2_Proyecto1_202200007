@@ -8,14 +8,15 @@
       'Primitivos': nodos.Primitivos,
       'operacion': nodos.Operacion,
       'unaria': nodos.Unaria,
-      'declaracionVariable': nodos.DeclaracionVariable,
-      'referenciaVariable': nodos.ReferenciaVariable,
+      'declaracionVar': nodos.DeclaracionVar,
+      'refVar': nodos.RefVar,
       'print': nodos.Print,
       'expresionStatement': nodos.ExpresionStatement,
       'if': nodos.If,
       'while': nodos.While,
       'assign': nodos.Assign,
-      'brackets': nodos.Brackets
+      'brackets': nodos.Brackets,
+      'declaracionVarTipo': nodos.DeclaracionVarTipo
 
     }
 
@@ -32,8 +33,11 @@ Declaracion = decl:DecVariable _ { return decl }
             / statement:Statement _ { return statement }
 
 //---------------declaracion de variables, clases y funciones
-DecVariable = "var" _ id:ID _ "=" _ exp:Expresion _ ";" { return crearNodo('declaracionVariable', { id, exp }) }
-
+DecVariable = "var" _ id:ID _ "=" _ exp:Expresion _ ";" { return crearNodo('declaracionVar', { id, exp}) }
+            / tipoz:TiposVar _ id:ID _  
+            TipadoValor:(
+              "=" _ TipadoValor:Expresion _  { return  TipadoValor  }
+            )?_";" { return crearNodo('declaracionVarTipo', { id, exp:TipadoValor, tipoz }) }
 
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -151,11 +155,16 @@ Prim =   floatN:tipoFloat {return crearNodo('Primitivos', { valor: floatN, tipo:
   /"false" {return crearNodo('Primitivos', { valor: false, tipo: "boolean" })}
   / "(" _ exp:Expresion _ ")" { return crearNodo('agrupacion', { exp }) }
   / "[" _ exp:Expresion _ "]" { return crearNodo('agrupacion', { exp }) }
-  / id:ID { return crearNodo('referenciaVariable', { id }) }
+  / id:ID { return crearNodo('refVar', { id }) }
   / str:String { return crearNodo('Primitivos', { valor: str, tipo: "string" }) }
   / char:Charr { return crearNodo('Primitivos', { valor: char, tipo: "char" }) }
   / "null" {return crearNodo('Primitivos', { valor: null, tipo: "null" })}
 
+TiposVar = "int"{ return text() } 
+/ "float"{ return text() } 
+/ "boolean" { return text() }
+/ "char" { return text() }
+/ "string" { return text() }
 
 _ = [ \t\n\r]*
 

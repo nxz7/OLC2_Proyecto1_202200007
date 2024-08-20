@@ -394,6 +394,7 @@ export class InterpreterVisitor extends BaseVisitor {
     visitBrackets(node) {
         const previousEn = this.entornoActual;
         this.entornoActual = new Entorno(previousEn);
+        //console.log(this.entornoActual);
 //no eliminando solo apuntando 
         node.declaraciones.forEach(declacion => declacion.accept(this));
 
@@ -402,31 +403,68 @@ export class InterpreterVisitor extends BaseVisitor {
 
 
     /**
-     * @type {BaseVisitor['visitDeclaracionVariable']}
+     * @type {BaseVisitor['visitDeclaracionVar']}
      */
-    visitDeclaracionVariable(node) {
+    visitDeclaracionVar(node) {
         const nombreVariable = node.id;
-        const valorVariable = node.exp.accept(this);
-        //AGREGAR  EL TIPADO NECESARIO
+            const valorVariable = node.exp.accept(this);
+            node.valor = valorVariable;
+            node.tipo = node.exp.tipo;
+            console.log("DeclaracionVariable(var):", nombreVariable, valorVariable, node.tipo, "variable", node.location.end.line, node.location.end.column);
+            this.entornoActual.setVariable(nombreVariable, valorVariable, node.tipo, "variable", node.location.end.line, node.location.end.column);
 
-        node.valor = valorVariable;
-        node.tipo = node.exp.tipo;
-
-        console.log("DeclaracionVariable:", node.valor, node.tipo);
-
-
-//!!-------------------NECESARIOS GUARDAR EL TIPADO PARA REFERENCIA 
-        this.entornoActual.setVariable(nombreVariable, valorVariable);
-        
-    }
+}
 
 
     /**
-      * @type {BaseVisitor['visitReferenciaVariable']}
-      */
-    visitReferenciaVariable(node) {
+     * @type {BaseVisitor['visitDeclaracionVarTipo']}
+     */
+    visitDeclaracionVarTipo(node) {
         const nombreVariable = node.id;
-        return this.entornoActual.getVariable(nombreVariable);
+    console.log("nodo", node);
+
+        if (node.exp) {
+        const valorVariable = node.exp.accept(this);
+
+            if (node.exp.tipo == node.tipoz) {
+                console.log(node.exp.tipo, node.tipoz);
+                node.valor = valorVariable;
+                node.tipo = node.exp.tipo;
+                console.log("DeclaracionVariable(TIPADO):", nombreVariable, valorVariable, node.tipo, "variable", node.location.end.line, node.location.end.column);
+                this.entornoActual.setVariable(nombreVariable, valorVariable, node.tipo, "variable", node.location.end.line, node.location.end.column);
+
+            }else if(node.tipoz=="float" && node.exp.tipo=="int"){
+                node.valor = parseFloat(valorVariable);
+                node.tipo = "float";
+                console.log("DeclaracionVariable(TIPADO):", nombreVariable, valorVariable, node.tipo, "variable", node.location.end.line, node.location.end.column);
+                this.entornoActual.setVariable(nombreVariable, valorVariable, "float", "variable", node.location.end.line, node.location.end.column);
+
+            }
+            else{
+                console.log(`ERROR DE TIPOS, tipo del valor declarado ${node.exp.tipo} - tipo declarado ${node.tipoz}`);
+
+            }
+        }else {
+            //console.log("no hay exp");
+            node.valor = null;
+            node.tipo = node.tipoz;
+            console.log("DeclaracionVariable(TIPADO-no exp):", nombreVariable, null, node.tipo, "variable", node.location.end.line, node.location.end.column);
+            this.entornoActual.setVariable(nombreVariable, null, node.tipo, "variable", node.location.end.line, node.location.end.column);
+        }
+
+}
+
+
+    /**
+      * @type {BaseVisitor['visitRefVar']}
+      */
+    visitRefVar(node) {
+        const nombreVariable = node.id;
+        const infoVariable = this.entornoActual.getVariable(nombreVariable);
+        console.log("RefVar", infoVariable.valor, infoVariable.tipo);
+        node.valor = infoVariable.valor;
+        node.tipo = infoVariable.tipo;
+        return infoVariable.valor;
     }
 
 
@@ -477,16 +515,39 @@ export class InterpreterVisitor extends BaseVisitor {
       * @type {BaseVisitor['visitExpresionStatement']}
       */
     visitExpresionStatement(node) {
-        node.exp.accept(this);
+        const mainexp = node.exp.accept(this);
+        node.valor = mainexp;
+        node.tipo = node.exp.tipo;
+        console.log("ExpresionStatement", mainexp, node.exp.tipo);
     }
-
+//OJO --> VER SI EXPRESSIONSTATEMENT NECESITA REGRESAR VALOR Y TIPO
 
     visitAssign(node) {
-        //assign y id
-        const valor = node.assign.accept(this);
-        this.entornoActual.assignVariable(node.id, valor);
+        const nombreVariable = node.id;
+        const infoVariable = this.entornoActual.getVariable(nombreVariable);
 
-        return valor;
+
+        //console.log("azzzign", node.assign.tipo, node.assign.valor);
+        if(node.assign.tipo == infoVariable.tipo){
+            const valor = node.assign.accept(this);
+            this.entornoActual.assignVariable(node.id, valor);
+            node.valor = valor;
+            node.tipo = infoVariable.tipo;
+            return valor;
+        } else if (node.assign.tipo == "int" && infoVariable.tipo == "float"){
+            const valor = node.assign.accept(this);
+            node.valor = parseFloat(valor);
+            node.tipo = "float";
+            this.entornoActual.assignVariable(node.id, parseFloat(valor));
+            return valor;
+
+        }else {
+            console.error("Error de tipado en asignación, el valor declarado no coincide con el tipo de la variable");
+            return ;
+        }
+
+        
+        
     }
 
 }
