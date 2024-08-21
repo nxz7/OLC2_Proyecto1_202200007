@@ -419,12 +419,12 @@ export class InterpreterVisitor extends BaseVisitor {
     visitDeclaracionVar(node) {
         const nombreVariable = node.id;
         const valorVariable = node.exp.accept(this);
-        const infoVariable = this.entornoActual.getVariable(nombreVariable);
+        const infoVariable = this.entornoActual.getBracketVar(nombreVariable);
         node.valor = valorVariable;
         node.tipo = node.exp.tipo;
 
         if(infoVariable != null){
-            console.log("Error: Variable ya declarada");
+            console.log("Error: Variable ya declarada en el entorno actual");
             return ;
 
         }else{
@@ -443,7 +443,7 @@ export class InterpreterVisitor extends BaseVisitor {
     visitDeclaracionVarTipo(node) {
         const nombreVariable = node.id;
     //console.log("nodo", node);
-    const infoVariable = this.entornoActual.getVariable(nombreVariable);
+    const infoVariable = this.entornoActual.getBracketVar(nombreVariable);
         if(infoVariable != null){
             console.log("Error: Variable ya declarada");
             return ;

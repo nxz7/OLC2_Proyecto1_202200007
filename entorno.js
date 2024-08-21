@@ -41,6 +41,19 @@ export class Entorno {
         return null;
     }
 
+
+        /**
+     * @param {string} nombre
+     */
+        getBracketVar(nombre) {
+            const currentV = this.valores[nombre];
+            // Solo revisa si existe en el entorno actual
+            if (currentV) return currentV;
+    
+            console.log(`la variable: ${nombre} no existe en el entorno actual`);
+            return null;
+        }
+
     /**
      * @param {string} nombre
      * @param {any} valor
