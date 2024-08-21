@@ -20,7 +20,7 @@ export class Entorno {
          * @param {any} linea
          * @param {any} columna
          */
-    setVariable(nombre, valor, tipo, simbType, linea, columna) {
+    addVariable(nombre, valor, tipo, simbType, linea, columna) {
         this.valores[nombre] = { valor, tipo, simbType, linea, columna };
         console.log("Estado actual de valores:", this.valores);
     }
@@ -37,7 +37,8 @@ export class Entorno {
             return this.padre.getVariable(nombre);
         }
 
-        throw new Error(`Error con variable: ${nombre} - no encontrada`);
+        console.log(`la variable:  ${nombre} - aun no existe en el entorno`);
+        return null;
     }
 
     /**
@@ -48,7 +49,7 @@ export class Entorno {
      * @param {any} linea
      * @param {any} columna
      */
-    assignVariable(nombre, valor, tipo, simbType, linea, columna) {
+    updateVariable(nombre, valor, tipo, simbType, linea, columna) {
         const valorAssign = this.valores[nombre];
         // Si existe la variable, actualizar su valor y demás propiedades
         if (valorAssign) {
@@ -61,7 +62,7 @@ export class Entorno {
         }
         // Si no existe en este entorno, buscar en el entorno padre
         if (!valorAssign && this.padre) {
-            this.padre.assignVariable(nombre, valor, tipo, simbType, linea, columna);
+            this.padre.updateVariable(nombre, valor, tipo, simbType, linea, columna);
             return;
         }
 

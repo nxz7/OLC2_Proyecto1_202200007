@@ -1,9 +1,11 @@
-export const Symbols = {
-    allVariables: {},
+export class Symbols  {
+    constructor() {
+        this.allVariables = {};
+    }
 
     addVariable(nombre, valor, tipo, simbType, linea, columna) {
         this.allVariables[nombre] = { valor, tipo, simbType, linea, columna };
-    },
+    }
 
     updateVariable(nombre, valor) {
         if (this.allVariables[nombre]) {
@@ -11,11 +13,11 @@ export const Symbols = {
         } else {
             console.error(`Variable:  ${nombre} - no se encuentra en la tabla de simbolos.`);
         }
-    },
+    }
 
     getVariable(nombre) {
         return this.allVariables[nombre];
-    },
+    }
 
     generateHTMLTable() {
         let htmlContent = `

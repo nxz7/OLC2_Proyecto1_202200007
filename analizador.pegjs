@@ -63,7 +63,7 @@ Charr = "\'" [^\']* "\'" { return text() }
 Expresion = Assign
 
 
-Assign = id:ID _ "=" _ assign:Assign { return crearNodo('assign', { id, assign }) }
+Assign = id:ID _ "=" _ assign:Expresion { return crearNodo('assign', { id, assign }) }
           / logicoOr
 
 logicoOr = izq:logicoAnd expansion:(

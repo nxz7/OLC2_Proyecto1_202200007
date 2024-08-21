@@ -5,11 +5,11 @@ import { BaseVisitor } from "./visitor.js";
 
 export class InterpreterVisitor extends BaseVisitor {
 
-    constructor() {
+    constructor(symbols) {
         super();
         //nuevos entornos con nuevos bloques!!
         this.entornoActual = new Entorno();
-
+        this.symbols = symbols;
         //LA RESPUESTA QUE SE VA A MOSTRAR en sonsola
         this.salida = '';
     }
@@ -407,11 +407,21 @@ export class InterpreterVisitor extends BaseVisitor {
      */
     visitDeclaracionVar(node) {
         const nombreVariable = node.id;
-            const valorVariable = node.exp.accept(this);
-            node.valor = valorVariable;
-            node.tipo = node.exp.tipo;
+        const valorVariable = node.exp.accept(this);
+        const infoVariable = this.entornoActual.getVariable(nombreVariable);
+        node.valor = valorVariable;
+        node.tipo = node.exp.tipo;
+
+        if(infoVariable != null){
+            console.log("Error: Variable ya declarada");
+            return ;
+
+        }else{
+
             console.log("DeclaracionVariable(var):", nombreVariable, valorVariable, node.tipo, "variable", node.location.end.line, node.location.end.column);
-            this.entornoActual.setVariable(nombreVariable, valorVariable, node.tipo, "variable", node.location.end.line, node.location.end.column);
+            this.entornoActual.addVariable(nombreVariable, valorVariable, node.tipo, "variable", node.location.end.line, node.location.end.column);
+            this.symbols.addVariable(nombreVariable, valorVariable, node.tipo, "variable", node.location.end.line, node.location.end.column);
+        }
 
 }
 
@@ -422,34 +432,44 @@ export class InterpreterVisitor extends BaseVisitor {
     visitDeclaracionVarTipo(node) {
         const nombreVariable = node.id;
     console.log("nodo", node);
+    const infoVariable = this.entornoActual.getVariable(nombreVariable);
+        if(infoVariable != null){
+            console.log("Error: Variable ya declarada");
+            return ;
 
-        if (node.exp) {
-        const valorVariable = node.exp.accept(this);
+        }else{
 
-            if (node.exp.tipo == node.tipoz) {
-                console.log(node.exp.tipo, node.tipoz);
-                node.valor = valorVariable;
-                node.tipo = node.exp.tipo;
-                console.log("DeclaracionVariable(TIPADO):", nombreVariable, valorVariable, node.tipo, "variable", node.location.end.line, node.location.end.column);
-                this.entornoActual.setVariable(nombreVariable, valorVariable, node.tipo, "variable", node.location.end.line, node.location.end.column);
+            if (node.exp) {
+            const valorVariable = node.exp.accept(this);
 
-            }else if(node.tipoz=="float" && node.exp.tipo=="int"){
-                node.valor = parseFloat(valorVariable);
-                node.tipo = "float";
-                console.log("DeclaracionVariable(TIPADO):", nombreVariable, valorVariable, node.tipo, "variable", node.location.end.line, node.location.end.column);
-                this.entornoActual.setVariable(nombreVariable, valorVariable, "float", "variable", node.location.end.line, node.location.end.column);
+                if (node.exp.tipo == node.tipoz) {
+                    console.log(node.exp.tipo, node.tipoz);
+                    node.valor = valorVariable;
+                    node.tipo = node.exp.tipo;
+                    console.log("DeclaracionVariable(TIPADO):", nombreVariable, valorVariable, node.tipo, "variable", node.location.end.line, node.location.end.column);
+                    this.entornoActual.addVariable(nombreVariable, valorVariable, node.tipo, "variable", node.location.end.line, node.location.end.column);
+                    this.symbols.addVariable(nombreVariable, valorVariable, node.tipo, "variable", node.location.end.line, node.location.end.column);
+                    
 
+                }else if(node.tipoz=="float" && node.exp.tipo=="int"){
+                    node.valor = parseFloat(valorVariable);
+                    node.tipo = "float";
+                    console.log("DeclaracionVariable(TIPADO):", nombreVariable, valorVariable, node.tipo, "variable", node.location.end.line, node.location.end.column);
+                    this.entornoActual.addVariable(nombreVariable, valorVariable, "float", "variable", node.location.end.line, node.location.end.column);
+                    this.symbols.addVariable(nombreVariable, valorVariable, "float", "variable", node.location.end.line, node.location.end.column);
+                }
+                else{
+                    console.log(`ERROR DE TIPOS, tipo del valor declarado ${node.exp.tipo} - tipo declarado ${node.tipoz}`);
+
+                }
+            }else {
+                //console.log("no hay exp");
+                node.valor = null;
+                node.tipo = node.tipoz;
+                console.log("DeclaracionVariable(TIPADO-no exp):", nombreVariable, null, node.tipo, "variable", node.location.end.line, node.location.end.column);
+                this.entornoActual.addVariable(nombreVariable, null, node.tipo, "variable", node.location.end.line, node.location.end.column);
+                this.symbols.addVariable(nombreVariable, null, node.tipo, "variable", node.location.end.line, node.location.end.column);
             }
-            else{
-                console.log(`ERROR DE TIPOS, tipo del valor declarado ${node.exp.tipo} - tipo declarado ${node.tipoz}`);
-
-            }
-        }else {
-            //console.log("no hay exp");
-            node.valor = null;
-            node.tipo = node.tipoz;
-            console.log("DeclaracionVariable(TIPADO-no exp):", nombreVariable, null, node.tipo, "variable", node.location.end.line, node.location.end.column);
-            this.entornoActual.setVariable(nombreVariable, null, node.tipo, "variable", node.location.end.line, node.location.end.column);
         }
 
 }
@@ -459,12 +479,19 @@ export class InterpreterVisitor extends BaseVisitor {
       * @type {BaseVisitor['visitRefVar']}
       */
     visitRefVar(node) {
+
         const nombreVariable = node.id;
         const infoVariable = this.entornoActual.getVariable(nombreVariable);
+        console.log("return de la variable", infoVariable);
+        if(infoVariable != null){ 
         console.log("RefVar", infoVariable.valor, infoVariable.tipo);
         node.valor = infoVariable.valor;
         node.tipo = infoVariable.tipo;
         return infoVariable.valor;
+        } else {
+                console.log(`Error: Variable ${nombreVariable} no definida`);
+                return ;
+        }
     }
 
 
@@ -505,8 +532,12 @@ export class InterpreterVisitor extends BaseVisitor {
      * @type {BaseVisitor['visitWhile']}
      */
     visitWhile(node) {
+        try {
         while (node.condition.accept(this)) {
             node.whileBracket.accept(this);
+            console.log("1");
+        }}catch (error) {
+            console.error('Error  while:', error);
         }
     }
 
@@ -525,20 +556,23 @@ export class InterpreterVisitor extends BaseVisitor {
     visitAssign(node) {
         const nombreVariable = node.id;
         const infoVariable = this.entornoActual.getVariable(nombreVariable);
-
+        const valor = node.assign.accept(this);
+        console.log("Asiganr: ", node);
 
         //console.log("azzzign", node.assign.tipo, node.assign.valor);
         if(node.assign.tipo == infoVariable.tipo){
-            const valor = node.assign.accept(this);
-            this.entornoActual.assignVariable(node.id, valor);
+            //const valor = node.assign.accept(this);
+            this.entornoActual.updateVariable(node.id, valor);
+            this.symbols.updateVariable(node.id, valor);
             node.valor = valor;
             node.tipo = infoVariable.tipo;
             return valor;
         } else if (node.assign.tipo == "int" && infoVariable.tipo == "float"){
-            const valor = node.assign.accept(this);
+            //const valor = node.assign.accept(this);
             node.valor = parseFloat(valor);
             node.tipo = "float";
-            this.entornoActual.assignVariable(node.id, parseFloat(valor));
+            this.entornoActual.updateVariable(node.id, parseFloat(valor));
+            this.symbols.updateVariable(node.id, parseFloat(valor));
             return valor;
 
         }else {
