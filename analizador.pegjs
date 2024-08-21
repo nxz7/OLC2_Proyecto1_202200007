@@ -14,7 +14,9 @@
       'expresionStatement': nodos.ExpresionStatement,
       'if': nodos.If,
       'while': nodos.While,
+      'for': nodos.For,
       'assign': nodos.Assign,
+      'ternario': nodos.Ternario,
       'brackets': nodos.Brackets,
       'declaracionVarTipo': nodos.DeclaracionVarTipo
 
@@ -50,21 +52,26 @@ Statement = "System.out.println(" _ exp:Expresion _ ")" _ ";" { return crearNodo
       falseBracket:(
         _ "else" _ falseBracket:Statement { return falseBracket } 
       )? { return crearNodo('if', { condition, trueBracket, falseBracket }) }
-
+    / "for" _ "(" _ condition:Expresion _ ")" _ forBracket:Statement { return crearNodo('for', { condition, forBracket }) }
+//----arreglar for
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 //restriccion de NO empezar con un numero
 ID = [a-zA-Z_][a-zA-Z0-9_]* { return text() }
 String = "\"" [^\"]* "\"" { return text() }
 Charr = "\'" [^\']* "\'" { return text() }
-
+IntTernario = "?" { return text() } 
 //---------------------------------------
 
 Expresion = Assign
 
+Assign = id:ID _ op:("="/"+="/"-=") _ assign:Expresion { return crearNodo('assign', { id, assign, op}) }
+          / Ternario
 
-Assign = id:ID _ "=" _ assign:Expresion { return crearNodo('assign', { id, assign }) }
-          / logicoOr
+
+Ternario = condition:logicoOr _ IntTernario _ TrueB:Expresion _ ":" _ FalseB:Expresion {return crearNodo('ternario', { condition, TrueB, FalseB })} 
+/ logicoOr
+
 
 logicoOr = izq:logicoAnd expansion:(
   _ op:("||") _ der:logicoAnd { return { tipo: op, der } }
@@ -166,5 +173,10 @@ TiposVar = "int"{ return text() }
 / "char" { return text() }
 / "string" { return text() }
 
-_ = [ \t\n\r]*
+
+// en cualquier lugar puede haber un espacio -> en cualquier lugar puede haber un comentario
+_ = [ \t\n\r]* Comentarios* [ \t\n\r]*
+
+Comentarios = "//" [^\n\r]* 
+  / "/*" (!"*/" .)* "*/"
 

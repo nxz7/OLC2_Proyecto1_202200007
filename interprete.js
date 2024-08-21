@@ -204,9 +204,11 @@ export class InterpreterVisitor extends BaseVisitor {
                             node.valor = izq > der;
                             return node.valor;
                         } else if (tipoIzq === 'char' && tipoDer === 'char') {
+                            //console.log("char", izq, der);
                             const izqChar = izq.replace(/['"]+/g, '');
                             const derChar = der.replace(/['"]+/g, '');
                     
+                            //console.log ("char>", izqChar, derChar);
                             node.tipo = 'boolean';
                             node.valor = izqChar.charCodeAt(0) > derChar.charCodeAt(0);
                             return node.valor;
@@ -339,7 +341,7 @@ export class InterpreterVisitor extends BaseVisitor {
                 if (node.exp.tipo === 'int'||node.exp.tipo === 'float') {
                 node.valor = -exp;
                 node.tipo = node.exp.tipo;
-                console.log("Unaria", node.valor, node.tipo);
+                //console.log("Unaria", node.valor, node.tipo);
                 return node.valor;
             } else {
                 throw new Error(`Error de tipos: Se esperaba un valor int/float en la operación '!', pero se encontró ${node.exp.tipo}.`);
@@ -349,7 +351,7 @@ export class InterpreterVisitor extends BaseVisitor {
                 if (node.exp.tipo === 'boolean') {
                     node.valor = !exp;
                     node.tipo = 'boolean';
-                    console.log("Unaria", node.valor, node.tipo);
+                    //console.log("Unaria", node.valor, node.tipo);
                     return node.valor;
                 } else {
                     throw new Error(`Error de tipos: Se esperaba un valor booleano en la operación '!', pero se encontró ${node.exp.tipo}.`);
@@ -376,12 +378,21 @@ export class InterpreterVisitor extends BaseVisitor {
       * @type {BaseVisitor['visitPrimitivos']}
       */
     visitPrimitivos(node) {
+        //console.log("Primitivos", node);
         if (node.tipo === "string" && typeof node.valor === "string") {
             // quita las ""
             if (node.valor.length > 1 &&
                 ((node.valor.startsWith('"') && node.valor.endsWith('"')) || 
                 (node.valor.startsWith("'") && node.valor.endsWith("'")))) {
                 node.valor = node.valor.slice(1, -1); // se actualiza el valor
+            }
+        }else if (node.tipo == "char" && typeof node.valor == "string") {
+            if ( (node.valor.startsWith('"') && node.valor.endsWith('"')) || 
+            (node.valor.startsWith("'") && node.valor.endsWith("'"))) {
+                //console.log("entrando al slice del char");
+                //console.log(node.valor.length);
+                node.valor = node.valor.slice(1, -1); 
+                //console.log(node.valor);
             }
         }
 
@@ -431,7 +442,7 @@ export class InterpreterVisitor extends BaseVisitor {
      */
     visitDeclaracionVarTipo(node) {
         const nombreVariable = node.id;
-    console.log("nodo", node);
+    //console.log("nodo", node);
     const infoVariable = this.entornoActual.getVariable(nombreVariable);
         if(infoVariable != null){
             console.log("Error: Variable ya declarada");
@@ -443,7 +454,7 @@ export class InterpreterVisitor extends BaseVisitor {
             const valorVariable = node.exp.accept(this);
 
                 if (node.exp.tipo == node.tipoz) {
-                    console.log(node.exp.tipo, node.tipoz);
+                    //console.log(node.exp.tipo, node.tipoz);
                     node.valor = valorVariable;
                     node.tipo = node.exp.tipo;
                     console.log("DeclaracionVariable(TIPADO):", nombreVariable, valorVariable, node.tipo, "variable", node.location.end.line, node.location.end.column);
@@ -482,9 +493,9 @@ export class InterpreterVisitor extends BaseVisitor {
 
         const nombreVariable = node.id;
         const infoVariable = this.entornoActual.getVariable(nombreVariable);
-        console.log("return de la variable", infoVariable);
+        //console.log("return de la variable", infoVariable);
         if(infoVariable != null){ 
-        console.log("RefVar", infoVariable.valor, infoVariable.tipo);
+        //console.log("RefVar", infoVariable.valor, infoVariable.tipo);
         node.valor = infoVariable.valor;
         node.tipo = infoVariable.tipo;
         return infoVariable.valor;
@@ -535,12 +546,50 @@ export class InterpreterVisitor extends BaseVisitor {
         try {
         while (node.condition.accept(this)) {
             node.whileBracket.accept(this);
-            console.log("1");
+            //console.log("dentro while");
         }}catch (error) {
             console.error('Error  while:', error);
         }
     }
 
+
+    //FOR
+    /**
+     * @type {BaseVisitor['visitFor']}
+     */
+    visitFor(node) {
+        try {
+        while (node.condition.accept(this)) {
+            node.forBracket.accept(this);
+            //console.log("dentro for");
+        }}catch (error) {
+            console.error('Error  for:', error);
+        }
+    }
+
+
+        //TERNARIO
+    /**
+     * @type {BaseVisitor['visitTernario']}
+     */
+    visitTernario(node) {
+        //console.log ("Ternario", node);
+        
+        try {
+            const TernarioValor = node.condition.accept(this) ? node.TrueB.accept(this) : node.FalseB.accept(this);
+            //console.log(TernarioValor);
+            //console.log("dentro ternario");
+            node.valor = TernarioValor;
+            const tipoTrue = node.TrueB.tipo;
+            const tipoFalse = node.FalseB.tipo;
+            node.tipo = node.condition.accept(this) ? tipoTrue : tipoFalse;
+            return node.valor;
+            //node.tipo = node.condition.accept(this) ? node.TrueB.accept(this) : node.FalseB.accept(this);
+
+        }catch (error) {
+            console.error('Error  for:', error);
+        }
+    }
 
     /**
       * @type {BaseVisitor['visitExpresionStatement']}
@@ -557,31 +606,78 @@ export class InterpreterVisitor extends BaseVisitor {
         const nombreVariable = node.id;
         const infoVariable = this.entornoActual.getVariable(nombreVariable);
         const valor = node.assign.accept(this);
-        console.log("Asiganr: ", node);
-
+        //console.log("Asiganr: ", node);
+        switch (node.op) {
         //console.log("azzzign", node.assign.tipo, node.assign.valor);
-        if(node.assign.tipo == infoVariable.tipo){
-            //const valor = node.assign.accept(this);
-            this.entornoActual.updateVariable(node.id, valor);
-            this.symbols.updateVariable(node.id, valor);
-            node.valor = valor;
-            node.tipo = infoVariable.tipo;
-            return valor;
-        } else if (node.assign.tipo == "int" && infoVariable.tipo == "float"){
-            //const valor = node.assign.accept(this);
-            node.valor = parseFloat(valor);
-            node.tipo = "float";
-            this.entornoActual.updateVariable(node.id, parseFloat(valor));
-            this.symbols.updateVariable(node.id, parseFloat(valor));
-            return valor;
 
-        }else {
-            console.error("Error de tipado en asignación, el valor declarado no coincide con el tipo de la variable");
-            return ;
-        }
+            case '=':
+                if(node.assign.tipo == infoVariable.tipo){
+                    //const valor = node.assign.accept(this);
+                    this.entornoActual.updateVariable(node.id, valor);
+                    this.symbols.updateVariable(node.id, valor);
+                    node.valor = valor;
+                    node.tipo = infoVariable.tipo;
+                    return valor;
+                } else if (node.assign.tipo == "int" && infoVariable.tipo == "float"){
+                    //const valor = node.assign.accept(this);
+                    node.valor = parseFloat(valor);
+                    node.tipo = "float";
+                    this.entornoActual.updateVariable(node.id, parseFloat(valor));
+                    this.symbols.updateVariable(node.id, parseFloat(valor));
+                    return valor;
 
+                }else {
+                    console.error("Error de tipado en asignación, el valor declarado no coincide con el tipo de la variable");
+                    return ;
+                }
+
+            case '+=':
+                if(node.assign.tipo == infoVariable.tipo){
+                    //const valor = node.assign.accept(this);
+                    const addVariable = infoVariable.valor + valor;
+                    this.entornoActual.updateVariable(node.id, addVariable);
+                    this.symbols.updateVariable(node.id, addVariable);
+                    node.valor = addVariable;
+                    node.tipo = infoVariable.tipo;
+                    return addVariable;
+                } else if (node.assign.tipo == "int" && infoVariable.tipo == "float"){
+                    //const valor = node.assign.accept(this);
+                    const addVariable = infoVariable.valor + valor;
+                    node.valor = parseFloat(addVariable);
+                    node.tipo = "float";
+                    this.entornoActual.updateVariable(node.id, parseFloat(addVariable));
+                    this.symbols.updateVariable(node.id, parseFloat(addVariable));
+                    return addVariable;
         
+                }else {
+                    console.error("Error de tipado en asignación, el valor declarado no coincide con el tipo de la variable");
+                    return ;
+                }
+
+            case '-=':
+                if(node.assign.tipo == infoVariable.tipo){
+                    //const valor = node.assign.accept(this);
+                    const addVariable = infoVariable.valor - valor;
+                    this.entornoActual.updateVariable(node.id, addVariable);
+                    this.symbols.updateVariable(node.id, addVariable);
+                    node.valor = addVariable;
+                    node.tipo = infoVariable.tipo;
+                    return addVariable;
+                } else if (node.assign.tipo == "int" && infoVariable.tipo == "float"){
+                    //const valor = node.assign.accept(this);
+                    const addVariable = infoVariable.valor - valor;
+                    node.valor = parseFloat(addVariable);
+                    node.tipo = "float";
+                    this.entornoActual.updateVariable(node.id, parseFloat(addVariable));
+                    this.symbols.updateVariable(node.id, parseFloat(addVariable));
+                    return addVariable;
         
+                }else {
+                    console.error("Error de tipado en asignación, el valor declarado no coincide con el tipo de la variable");
+                    return ;
+                }
+        
+    }
     }
 
 }

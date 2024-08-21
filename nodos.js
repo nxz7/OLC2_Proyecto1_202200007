@@ -344,8 +344,9 @@ export class Assign extends Expresion {
     * @param {Object} options
     * @param {string} options.id nombre de lo que se va a asignar
  * @param {Expresion} options.assign lo que se le va a asignar al ID
+ * @param {string} options.op mira si es = / +=/-=
     */
-    constructor({ id, assign }) {
+    constructor({ id, assign, op }) {
         super();
         
         /**
@@ -360,6 +361,13 @@ export class Assign extends Expresion {
          * @type {Expresion}
         */
         this.assign = assign;
+
+
+        /**
+         * mira si es = / +=/-=
+         * @type {string}
+        */
+        this.op = op;
 
     }
 
@@ -445,6 +453,80 @@ export class While extends Expresion {
     }
 }
     
+export class For extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion} options.condition Condicion  - For (--)
+ * @param {Expresion} options.forBracket forBracket --> ejecuta mientras la condicion sea verdadera
+    */
+    constructor({ condition, forBracket }) {
+        super();
+        
+        /**
+         * Condicion  - For (--)
+         * @type {Expresion}
+        */
+        this.condition = condition;
+
+
+        /**
+         * forBracket --> ejecuta mientras la condicion sea verdadera
+         * @type {Expresion}
+        */
+        this.forBracket = forBracket;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitFor(this);
+    }
+}
+    
+export class Ternario extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion} options.condition Condicion  - TERNARIO
+ * @param {Expresion} options.TrueB VERDADERO TERNARIO
+ * @param {Expresion} options.FalseB FALSO TERNARIO
+    */
+    constructor({ condition, TrueB, FalseB }) {
+        super();
+        
+        /**
+         * Condicion  - TERNARIO
+         * @type {Expresion}
+        */
+        this.condition = condition;
+
+
+        /**
+         * VERDADERO TERNARIO
+         * @type {Expresion}
+        */
+        this.TrueB = TrueB;
+
+
+        /**
+         * FALSO TERNARIO
+         * @type {Expresion}
+        */
+        this.FalseB = FalseB;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitTernario(this);
+    }
+}
+    
 export class Brackets extends Expresion {
 
     /**
@@ -470,4 +552,4 @@ export class Brackets extends Expresion {
     }
 }
     
-export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Brackets }
+export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, For, Ternario, Brackets }

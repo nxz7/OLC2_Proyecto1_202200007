@@ -40,6 +40,12 @@
  * @typedef {import('./nodos.js').While} While
 
 
+ * @typedef {import('./nodos.js').For} For
+
+
+ * @typedef {import('./nodos.js').Ternario} Ternario
+
+
  * @typedef {import('./nodos.js').Brackets} Brackets
 
  */
@@ -166,6 +172,24 @@ export class BaseVisitor {
      */
     visitWhile(node) {
         throw new Error('Metodo visitWhile no implementado');
+    }
+    
+
+    /**
+     * @param {For} node
+     * @returns {any}
+     */
+    visitFor(node) {
+        throw new Error('Metodo visitFor no implementado');
+    }
+    
+
+    /**
+     * @param {Ternario} node
+     * @returns {any}
+     */
+    visitTernario(node) {
+        throw new Error('Metodo visitTernario no implementado');
     }
     
 
