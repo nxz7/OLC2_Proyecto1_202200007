@@ -73,6 +73,10 @@
       color: #ffffff;
       font-weight: bold;
     }
+    
+    .file-input-container {
+      display: none;
+    }
   </style>
 </head>
 
@@ -82,7 +86,8 @@
   <div class="flex-container">
     <textarea id="editor" placeholder="Ingrese expresión..."></textarea>
     <button id="btn">Ejecutar</button>
-    <button id="reportes-btn">Reportes</button>
+    <button id="open-file-btn">Abrir Archivo</button>
+    <input type="file" id="file-input" class="file-input-container" accept=".oak">
   </div>
 
   <div class="flex-container">
@@ -91,6 +96,22 @@
   </div>
 
   <script type="module" src="index.js"></script>
+  <script>
+    document.getElementById('open-file-btn').addEventListener('click', () => {
+      document.getElementById('file-input').click();
+    });
+
+    document.getElementById('file-input').addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('editor').value = e.target.result;
+        };
+        reader.readAsText(file);
+      }
+    });
+  </script>
 </body>
 
 </html>
