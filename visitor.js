@@ -40,6 +40,12 @@
  * @typedef {import('./nodos.js').While} While
 
 
+ * @typedef {import('./nodos.js').Switch} Switch
+
+
+ * @typedef {import('./nodos.js').CasesSwitch} CasesSwitch
+
+
  * @typedef {import('./nodos.js').For} For
 
 
@@ -172,6 +178,24 @@ export class BaseVisitor {
      */
     visitWhile(node) {
         throw new Error('Metodo visitWhile no implementado');
+    }
+    
+
+    /**
+     * @param {Switch} node
+     * @returns {any}
+     */
+    visitSwitch(node) {
+        throw new Error('Metodo visitSwitch no implementado');
+    }
+    
+
+    /**
+     * @param {CasesSwitch} node
+     * @returns {any}
+     */
+    visitCasesSwitch(node) {
+        throw new Error('Metodo visitCasesSwitch no implementado');
     }
     
 

@@ -15,11 +15,13 @@
       'if': nodos.If,
       'while': nodos.While,
       'for': nodos.For,
+      'switch': nodos.Switch,
+
       'assign': nodos.Assign,
       'ternario': nodos.Ternario,
       'brackets': nodos.Brackets,
-      'declaracionVarTipo': nodos.DeclaracionVarTipo
-
+      'declaracionVarTipo': nodos.DeclaracionVarTipo,
+      'casesSwitch': nodos.CasesSwitch
     }
 
     const nodo = new tipos[tipoNodo](props)
@@ -53,8 +55,14 @@ Statement = "System.out.println(" _ exp:Expresion _ ")" _ ";" { return crearNodo
         _ "else" _ falseBracket:Statement { return falseBracket } 
       )? { return crearNodo('if', { condition, trueBracket, falseBracket }) }
     / "for" _ "(" _ condition:Expresion _ ")" _ forBracket:Statement { return crearNodo('for', { condition, forBracket }) }
+    / "switch" _ "(" _ exp:Expresion _ ")" _ "{" _ cases:Case* _ Default:DefaultCase? _ "}" { return crearNodo('switch', { exp, cases, Default }) }
+
+Case = "case" _ valorCase:Expresion _ ":" _ caseBracket:Declaracion* { return crearNodo('casesSwitch', { valorCase, declaraciones:caseBracket }) }
+
+DefaultCase = "default" _ ":" _ defaultBracket:Declaracion*  { return crearNodo('brackets', { declaraciones:defaultBracket }) }
 //----arreglar for
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 
 //restriccion de NO empezar con un numero
 ID = [a-zA-Z_][a-zA-Z0-9_]* { return text() }

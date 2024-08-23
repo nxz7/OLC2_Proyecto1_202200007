@@ -1,4 +1,5 @@
 import { Entorno } from "./entorno.js";
+import { CasesSwitch } from "./nodos.js";
 import { BaseVisitor } from "./visitor.js";
 
 // SE COPIA DEL VISITOR.JS PARA REALIZAR LA IMPLEMENTACION 
@@ -599,6 +600,62 @@ export class InterpreterVisitor extends BaseVisitor {
             console.log('Error  for:', error);
             this.errores.addError("semantico",`Error dentro del FOR`, node.location.end.line, node.location.end.column);
         }
+    }
+
+
+    /**
+     * @type {BaseVisitor['visitSwitch']}
+     */
+    visitSwitch(node) {
+        const switchValue = node.exp.accept(this);
+        let matched = false;
+        console.log ("[Switch]", node);
+        
+
+    for (const caseNode of node.cases) {
+            const caseValue = caseNode.valorCase.accept(this);
+            console.log("caseNode", caseNode.declaraciones);
+            // Check if case value matches switch value
+            if (caseValue === switchValue && caseNode.valorCase.tipo === node.exp.tipo) {
+                const previousEn = this.entornoActual;
+                this.entornoActual = new Entorno(previousEn);
+                matched = true; //que si ya entro no salga
+                caseNode.declaraciones.forEach(declacion => declacion.accept(this));
+                this.entornoActual = previousEn;
+                node.valor = caseValue;
+                node.tipo = caseNode.valorCase.tipo;
+                break; 
+            }
+    }
+
+        // If no case matched, handle default case if present
+        if (!matched) {
+            console.log("default");
+            if (node.Default) {
+                console.log("default");
+                node.valor = "null";
+                node.tipo = "default";
+                node.Default.accept(this); // Execute statements in the default block
+            }
+        }
+
+
+    }
+//CasesSwitch
+
+    /**
+     * @type {BaseVisitor['visitCasesSwitch']}
+     */
+    visitCasesSwitch(node) {
+        //const previousEn = this.entornoActual;
+        //this.entornoActual = new Entorno(previousEn);
+        //console.log("visirCasesSwitch", node);
+//no eliminando solo apuntando
+        node.valor = node.valorCase.accept(this);
+        node.tipo = node.valorCase.tipo;
+        //node.declaraciones.forEach(declacion => declacion.accept(this));
+
+        //this.entornoActual = previousEn;
     }
 
 

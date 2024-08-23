@@ -453,6 +453,80 @@ export class While extends Expresion {
     }
 }
     
+export class Switch extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion} options.exp ---> expresion a evaluar switch(--)
+ * @param {Expresion[]} options.cases casos del switch
+ * @param {Expresion} options.Default default del switch
+    */
+    constructor({ exp, cases, Default }) {
+        super();
+        
+        /**
+         * ---> expresion a evaluar switch(--)
+         * @type {Expresion}
+        */
+        this.exp = exp;
+
+
+        /**
+         * casos del switch
+         * @type {Expresion[]}
+        */
+        this.cases = cases;
+
+
+        /**
+         * default del switch
+         * @type {Expresion}
+        */
+        this.Default = Default;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitSwitch(this);
+    }
+}
+    
+export class CasesSwitch extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion[]} options.declaraciones entorno bracketse declarado
+ * @param {Expresion} options.valorCase valor del caso a evaluar
+    */
+    constructor({ declaraciones, valorCase }) {
+        super();
+        
+        /**
+         * entorno bracketse declarado
+         * @type {Expresion[]}
+        */
+        this.declaraciones = declaraciones;
+
+
+        /**
+         * valor del caso a evaluar
+         * @type {Expresion}
+        */
+        this.valorCase = valorCase;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitCasesSwitch(this);
+    }
+}
+    
 export class For extends Expresion {
 
     /**
@@ -552,4 +626,4 @@ export class Brackets extends Expresion {
     }
 }
     
-export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, For, Ternario, Brackets }
+export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Switch, CasesSwitch, For, Ternario, Brackets }
