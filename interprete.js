@@ -17,6 +17,10 @@ export class InterpreterVisitor extends BaseVisitor {
         this.flowControlContinue = null;
         //LA RESPUESTA QUE SE VA A MOSTRAR en sonsola
         this.salida = '';
+        this.reservedWords = [
+            'while', 'for', 'if', 'else', 'break', 'continue', 'return', 'switch', 'case', 'default', 
+            'System.out.println', 'int', 'float', 'boolean', 'char', 'string', 'true', 'false', 'null', 'void', 'var', 'length', 'var', 'join()','join', 'indexOf','struct', 'var', 'parsefloat', 'parsefloat()', 'toString', 'tolowerCase', 'parseInt', 'toUpperCase', 'typeof'
+        ];
     }
 
 //AGREGAR ESTO ES SOLO PARA TENER LA INFO
@@ -41,7 +45,7 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.valor = izq + der;
                     return node.valor;
 
-                } else if (tipoIzq === 'float' || tipoDer === 'float') {
+                } else if ((tipoIzq === 'float' || tipoDer === 'float') &&(tipoIzq === 'int' || tipoDer === 'int')) {
                     node.tipo = 'float';
                     node.valor = izq + der;
                     return parseFloat(node.valor);
@@ -62,7 +66,7 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.valor = null;
                     console.log(`Error de tipado: ${tipoIzq} + ${tipoDer}`);
                     this.errores.addError("semantico", `Error de tipado: ${tipoIzq} + ${tipoDer}`, node.location.end.line, node.location.end.column);
-                    return;
+                    return null;
                     //throw new Error(`Error de tipado: ${tipoIzq} + ${tipoDer}`);
                 }
             case '-':
@@ -71,7 +75,7 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.valor = izq - der;
                     return node.valor;
 
-                } else if (tipoIzq === 'float' || tipoDer === 'float') {
+                } else if ((tipoIzq === 'float' || tipoDer === 'float') &&(tipoIzq === 'int' || tipoDer === 'int')) {
                     node.tipo = 'float';
                     node.valor = izq - der;
                     return parseFloat(node.valor);
@@ -87,7 +91,7 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.valor = null;
                     console.log(`Error de tipado: ${tipoIzq} - ${tipoDer}`);
                     this.errores.addError("semantico", `Error de tipado: ${tipoIzq} - ${tipoDer}`, node.location.end.line, node.location.end.column);
-                    return;
+                    return null;
                     
                 }
     
@@ -98,7 +102,7 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.valor = izq * der;
                     return node.valor;
 
-                } else if (tipoIzq === 'float' || tipoDer === 'float') {
+                } else if ((tipoIzq === 'float' || tipoDer === 'float') &&(tipoIzq === 'int' || tipoDer === 'int')) {
                     node.tipo = 'float';
                     node.valor = izq * der;
                     return parseFloat(node.valor);
@@ -116,7 +120,7 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.valor = null;
                     console.log(`Error de tipado: ${tipoIzq} * ${tipoDer}`);
                     this.errores.addError("semantico", `Error de tipado: ${tipoIzq} * ${tipoDer}`, node.location.end.line, node.location.end.column);
-                    return;
+                    return null;
 
                 }
     
@@ -134,7 +138,7 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.valor = izq / der;
                     return node.valor;
             
-                } else if (tipoIzq === 'float' || tipoDer === 'float') {
+                } else if ((tipoIzq === 'float' || tipoDer === 'float') &&(tipoIzq === 'int' || tipoDer === 'int')) {
                     node.tipo = 'float';
                     node.valor = izq / der;
                     return parseFloat(node.valor);
@@ -151,7 +155,7 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.valor = null;
                     console.log(`Error de tipado: ${tipoIzq} / ${tipoDer}`);
                     this.errores.addError("semantico", `Error de tipado: ${tipoIzq} / ${tipoDer}`, node.location.end.line, node.location.end.column);
-                    return;
+                    return null;
                 }
             case '%':
                 if (der === 0) {
@@ -174,10 +178,11 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.valor = null;
                     console.log(`Error de tipado: ${tipoIzq} % ${tipoDer}`);
                     this.errores.addError("semantico", `Error de tipado: ${tipoIzq} % ${tipoDer}`, node.location.end.line, node.location.end.column);
-                    return;
+                    return null;
                 }
 
                 case '>=':
+                    //(tipoIzq === 'float' || tipoDer === 'float') &&(tipoIzq === 'int' || tipoDer === 'int')
                     if ((tipoIzq === 'int' || tipoIzq === 'float') && (tipoDer === 'int' || tipoDer === 'float')) {
                         node.tipo = 'boolean';
                         node.valor = izq >= der;
@@ -199,7 +204,7 @@ export class InterpreterVisitor extends BaseVisitor {
                         //console.log("Error de tipado: ", tipoIzq, tipoDer);
                         console.log(`Error de tipado: ${tipoIzq} >= ${tipoDer}`);
                         this.errores.addError("semantico",`Error de tipado: ${tipoIzq} >= ${tipoDer}`, node.location.end.line, node.location.end.column);
-                        return;
+                        return null;
                     }
         
                 case '<=':
@@ -221,7 +226,7 @@ export class InterpreterVisitor extends BaseVisitor {
                         node.valor = null;
                         console.log(`Error de tipado: ${tipoIzq} <= ${tipoDer}`);
                         this.errores.addError("semantico",`Error de tipado: ${tipoIzq} <= ${tipoDer}`, node.location.end.line, node.location.end.column);
-                        return;
+                        return null;
                     }
 
                     case '>':
@@ -245,7 +250,7 @@ export class InterpreterVisitor extends BaseVisitor {
                             node.valor = null;
                             console.log(`Error de tipado: ${tipoIzq} > ${tipoDer}`);
                             this.errores.addError("semantico",`Error de tipado: ${tipoIzq} > ${tipoDer}`, node.location.end.line, node.location.end.column);
-                            return;
+                            return null;
                         }
             
                     case '<':
@@ -267,7 +272,7 @@ export class InterpreterVisitor extends BaseVisitor {
                             node.valor = null;
                             console.log(`Error de tipado: ${tipoIzq} < ${tipoDer}`);
                             this.errores.addError("semantico",`Error de tipado: ${tipoIzq} < ${tipoDer}`, node.location.end.line, node.location.end.column);
-                            return;
+                            return null;
                         }
                     
                         case '==':
@@ -299,7 +304,7 @@ export class InterpreterVisitor extends BaseVisitor {
                                 node.valor = null;
                                 console.log(`Error de tipado: ${tipoIzq} == ${tipoDer}`);
                                 this.errores.addError("semantico",`Error de tipado: ${tipoIzq} == ${tipoDer}`, node.location.end.line, node.location.end.column);
-                                return;
+                                return null;
                             }
                 
                         case '!=':
@@ -331,7 +336,7 @@ export class InterpreterVisitor extends BaseVisitor {
                                 node.valor = null;
                                 console.log(`Error de tipado: ${tipoIzq} != ${tipoDer}`);
                                 this.errores.addError("semantico",`Error de tipado: ${tipoIzq} != ${tipoDer}`, node.location.end.line, node.location.end.column);
-                                return;
+                                return null;
                             }
 
                             case '&&':
@@ -346,7 +351,7 @@ export class InterpreterVisitor extends BaseVisitor {
                                     node.valor = null;
                                     console.log(`Error de tipado: ${tipoIzq} && ${tipoDer}`);
                                     this.errores.addError("semantico",`Error de tipado: ${tipoIzq} && ${tipoDer}`, node.location.end.line, node.location.end.column);
-                                    return;
+                                    return null;
                                 }
         
                             case '||':
@@ -361,11 +366,12 @@ export class InterpreterVisitor extends BaseVisitor {
                                     node.valor = null;
                                     console.log(`Error de tipado: ${tipoIzq} || ${tipoDer}`);
                                     this.errores.addError("semantico",`Error de tipado: ${tipoIzq} || ${tipoDer}`, node.location.end.line, node.location.end.column);
-                                    return;
+                                    return null;
                                 }
             default:
                 console.log(`Error Operador no soportado: ${node.op}`);
                 this.errores.addError("semantico",`Error Operador no soportado: ${node.op}`, node.location.end.line, node.location.end.column);
+                return null;
         }
     }
 
@@ -385,6 +391,7 @@ export class InterpreterVisitor extends BaseVisitor {
             } else {
                 console.log(`Error de tipos: Se esperaba un valor int/float en la operación '!', pero se encontró ${node.exp.tipo}.`);
                 this.errores.addError("semantico",`Error de tipos: Se esperaba un valor int/float en la operación '-', pero se encontró ${node.exp.tipo}.`, node.location.end.line, node.location.end.column);
+                return null;
             }
 
             case '!':
@@ -396,10 +403,12 @@ export class InterpreterVisitor extends BaseVisitor {
                 } else {
                     console.log(`Error de tipos: Se esperaba un valor booleano en la operación '!', pero se encontró ${node.exp.tipo}.`);
                     this.errores.addError("semantico",`Error de tipos: Se esperaba un valor int/float en la operación '!', pero se encontró ${node.exp.tipo}.`, node.location.end.line, node.location.end.column);
+                    return null;
                 }
             default:
                 console.log(`ERROR Operador no soportado: ${node.op}`);
                 this.errores.addError("semantico",`ERROR Operador no soportado: ${node.op}`, node.location.end.line, node.location.end.column);
+                return null;
         }
     }
 
@@ -460,6 +469,13 @@ export class InterpreterVisitor extends BaseVisitor {
      */
     visitDeclaracionVar(node) {
         const nombreVariable = node.id;
+
+        if (this.reservedWords.includes(nombreVariable)) {
+            console.log(`Error: '${nombreVariable}' es una palabra reservada y no puede ser usada como nombre de variable.`);
+            this.errores.addError("semantico", `Error: '${nombreVariable}'es una palabra reservada y no puede ser usada como nombre de variable.`, node.location.end.line, node.location.end.column);
+            return;
+        }
+
         const valorVariable = node.exp.accept(this);
         const infoVariable = this.entornoActual.getBracketVar(nombreVariable);
         node.valor = valorVariable;
@@ -486,6 +502,13 @@ export class InterpreterVisitor extends BaseVisitor {
     visitDeclaracionVarTipo(node) {
         const nombreVariable = node.id;
     //console.log("nodo", node);
+
+    if (this.reservedWords.includes(nombreVariable)) {
+        console.log(`Error: '${nombreVariable}' es una palabra reservada y no puede ser usada como nombre de variable.`);
+        this.errores.addError("semantico", `Error: '${nombreVariable}'es una palabra reservada y no puede ser usada como nombre de variable.`, node.location.end.line, node.location.end.column);
+        return;
+    }
+
     const infoVariable = this.entornoActual.getBracketVar(nombreVariable);
         if(infoVariable != null){
             console.log("Error: Variable ya declarada");
@@ -538,20 +561,21 @@ export class InterpreterVisitor extends BaseVisitor {
 
         const nombreVariable = node.id;
         const infoVariable = this.entornoActual.getVariable(nombreVariable);
-        console.log("!!!1 return de la variable", this.entornoActual.getVariable(nombreVariable));
-        console.log("!!!2 return de la variable", infoVariable);
+        //console.log("!!!1 return de la variable", this.entornoActual.getVariable(nombreVariable));
+        //console.log("!!!2 return de la variable", infoVariable);
         if(infoVariable != null){ 
-        console.log("RefVar!!!" , infoVariable.valor, infoVariable.tipo);
+        //console.log("RefVar!!!" , infoVariable.valor, infoVariable.tipo);
         node.valor = infoVariable.valor;
         node.tipo = infoVariable.tipo;
-        console.log("RefVar---FINAL", node);
+        //console.log("RefVar---FINAL", node);
         return node.valor;
         } 
         else {
                 console.log(`Error: Variable ${nombreVariable} no definida`);
                 this.errores.addError("semantico",`Error: Variable ${nombreVariable} no definida`, node.location.end.line, node.location.end.column);
-
-                return ;
+                node.valor = null;
+                node.tipo = 'error';
+                return null ;
         }
     }
 
@@ -563,9 +587,20 @@ export class InterpreterVisitor extends BaseVisitor {
 //----------->>>>>>>>>>>>STATEMENTS
     //SI HAY UN NUMERO/STRING DEVUELVE EL OBJETO, EN CAMBIO SI YA PASO POR SUMA RESTA ETC DEVUELVE EL VALOR
     visitPrint(node) {
-        const valorPrint = node.exp.accept(this);
-        //console.log("7Print", valorPrint);
-        this.salida += valorPrint + '\n';
+        node.Listaexp.forEach(exp => {
+            let valorPrint = exp.accept(this);
+            console.log("Print", exp);
+
+            if (exp.tipo === 'string' && exp.valor != null && exp.valor!= undefined ) {
+            valorPrint = valorPrint
+            .replace(/\\\\/g, '\\')   // UN SOLO SLASH
+            .replace(/\\"/g, '"')     // UN SOLO QUOTE
+            .replace(/\\t/g, '    ')   // EL TAB
+            .replace(/\\n/g, '\n')
+            .replace(/\\r/g, '\r');}
+
+            this.salida += valorPrint + '\n';
+        });
     }
 
 //IF

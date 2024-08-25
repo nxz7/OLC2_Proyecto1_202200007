@@ -48,7 +48,7 @@ DecVariable = "var" _ id:ID _ "=" _ exp:Expresion _ ";" { return crearNodo('decl
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 //----------------aca van los print, if else y todo tipo de statements ---------------
-Statement = "System.out.println(" _ exp:Expresion _ ")" _ ";" { return crearNodo('print', { exp }) }
+Statement = "System.out.println(" _ Listaexp:ListaExpresiones* _ ")" _ ";" { return crearNodo('print', { Listaexp }) }
     / "{" _ decl:Declaracion* _ "}" { return crearNodo('brackets', { declaraciones:decl }) }
     / "while" _ "(" _ condition:Expresion _ ")" _ whileBracket:Statement { return crearNodo('while', { condition, whileBracket }) }
     / "if" _ "(" _ condition:Expresion _ ")" _ trueBracket:Statement
@@ -63,7 +63,11 @@ Statement = "System.out.println(" _ exp:Expresion _ ")" _ ";" { return crearNodo
     / "return" _ exp:Expresion? _ ";" { return crearNodo('return', { exp }) }
     / exp:Expresion _ ";" { return crearNodo('expresionStatement', { exp }) }
 
-// SEPARAR PRIMERA CONDICION DE FOR    
+// SEPARAR PRIMERA CONDICION DE FOR
+
+ListaExpresiones = "," _ exp:Expresion _ { return exp }
+		/exp: Expresion _ { return exp }
+
 // para arreglar que no vengan dos ;; y de error
 FirstFor = decl:DecVariable { return decl  }
         / exp:Expresion _ ";" { return exp }
@@ -78,7 +82,7 @@ DefaultCase = "default" _ ":" _ defaultBracket:Declaracion*  { return crearNodo(
 
 //restriccion de NO empezar con un numero
 ID = [a-zA-Z_][a-zA-Z0-9_]* { return text() }
-String = "\"" [^\"]* "\"" { return text() }
+String = "\"" ( "\\" "\"" / [^\"] )* "\"" { return text() }
 Charr = "\'" [^\']* "\'" { return text() }
 IntTernario = "?" { return text() } 
 //---------------------------------------
