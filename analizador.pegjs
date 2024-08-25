@@ -16,7 +16,9 @@
       'while': nodos.While,
       'for': nodos.For,
       'switch': nodos.Switch,
-
+      'break': nodos.Break,
+      'continue': nodos.Continue,
+      'return': nodos.Return,
       'assign': nodos.Assign,
       'ternario': nodos.Ternario,
       'brackets': nodos.Brackets,
@@ -47,15 +49,25 @@ DecVariable = "var" _ id:ID _ "=" _ exp:Expresion _ ";" { return crearNodo('decl
 
 //----------------aca van los print, if else y todo tipo de statements ---------------
 Statement = "System.out.println(" _ exp:Expresion _ ")" _ ";" { return crearNodo('print', { exp }) }
-    / exp:Expresion _ ";" { return crearNodo('expresionStatement', { exp }) }
     / "{" _ decl:Declaracion* _ "}" { return crearNodo('brackets', { declaraciones:decl }) }
     / "while" _ "(" _ condition:Expresion _ ")" _ whileBracket:Statement { return crearNodo('while', { condition, whileBracket }) }
     / "if" _ "(" _ condition:Expresion _ ")" _ trueBracket:Statement
       falseBracket:(
         _ "else" _ falseBracket:Statement { return falseBracket } 
       )? { return crearNodo('if', { condition, trueBracket, falseBracket }) }
-    / "for" _ "(" _ condition:Expresion _ ")" _ forBracket:Statement { return crearNodo('for', { condition, forBracket }) }
+    / "for" _ "(" _ initialization:FirstFor?  _ condition:Expresion _ ";" _ update:Expresion _ ")" _ forBracket:Statement {
+      return crearNodo('for', { initialization, condition, update, forBracket })}
     / "switch" _ "(" _ exp:Expresion _ ")" _ "{" _ cases:Case* _ Default:DefaultCase? _ "}" { return crearNodo('switch', { exp, cases, Default }) }
+    / "break" _ ";" { return crearNodo('break') }
+    / "continue" _ ";" { return crearNodo('continue') }
+    / "return" _ exp:Expresion? _ ";" { return crearNodo('return', { exp }) }
+    / exp:Expresion _ ";" { return crearNodo('expresionStatement', { exp }) }
+
+// SEPARAR PRIMERA CONDICION DE FOR    
+// para arreglar que no vengan dos ;; y de error
+FirstFor = decl:DecVariable { return decl  }
+        / exp:Expresion _ ";" { return exp }
+        / ";" { return null }
 
 Case = "case" _ valorCase:Expresion _ ":" _ caseBracket:Declaracion* { return crearNodo('casesSwitch', { valorCase, declaraciones:caseBracket }) }
 
@@ -157,7 +169,7 @@ Multiplicacion = izq:Unaria expansion:(
     )
 }
 
-Unaria = ope:("-"/"!") _ num:Prim { return crearNodo('unaria', { op: ope, exp: num }) }
+Unaria = ope:("-"/"!") _ num:Unaria { return crearNodo('unaria', { op: ope, exp: num }) }
 / Prim
 
 tipoFloat =[0-9]+( "." [0-9]+ ) {return parseFloat(text(), 10)}

@@ -531,17 +531,33 @@ export class For extends Expresion {
 
     /**
     * @param {Object} options
-    * @param {Expresion} options.condition Condicion  - For (--)
+    * @param {Expresion} options.initialization inicializacion del for - 1 componente
+ * @param {Expresion} options.condition Condicion del for - 2 conponente
+ * @param {Expresion} options.update update del for, incremento/decremento - 3 componente
  * @param {Expresion} options.forBracket forBracket --> ejecuta mientras la condicion sea verdadera
     */
-    constructor({ condition, forBracket }) {
+    constructor({ initialization, condition, update, forBracket }) {
         super();
         
         /**
-         * Condicion  - For (--)
+         * inicializacion del for - 1 componente
+         * @type {Expresion}
+        */
+        this.initialization = initialization;
+
+
+        /**
+         * Condicion del for - 2 conponente
          * @type {Expresion}
         */
         this.condition = condition;
+
+
+        /**
+         * update del for, incremento/decremento - 3 componente
+         * @type {Expresion}
+        */
+        this.update = update;
 
 
         /**
@@ -557,6 +573,69 @@ export class For extends Expresion {
      */
     accept(visitor) {
         return visitor.visitFor(this);
+    }
+}
+    
+export class Break extends Expresion {
+
+    /**
+    * @param {Object} options
+    * 
+    */
+    constructor() {
+        super();
+        
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitBreak(this);
+    }
+}
+    
+export class Continue extends Expresion {
+
+    /**
+    * @param {Object} options
+    * 
+    */
+    constructor() {
+        super();
+        
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitContinue(this);
+    }
+}
+    
+export class Return extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion} options.exp en el caso de que retorne algo
+    */
+    constructor({ exp }) {
+        super();
+        
+        /**
+         * en el caso de que retorne algo
+         * @type {Expresion}
+        */
+        this.exp = exp;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitReturn(this);
     }
 }
     
@@ -626,4 +705,4 @@ export class Brackets extends Expresion {
     }
 }
     
-export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Switch, CasesSwitch, For, Ternario, Brackets }
+export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Switch, CasesSwitch, For, Break, Continue, Return, Ternario, Brackets }

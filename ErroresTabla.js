@@ -1,4 +1,4 @@
-export class Error {
+export class ErroresTabla {
     constructor() {
         this.errors = [];
     }

@@ -31,7 +31,10 @@ export class Entorno {
     getVariable(nombre) {
         const currentV = this.valores[nombre];
         // Ver si existe y devolver el valor
-        if (currentV) return currentV;
+        if (currentV !== undefined){
+            console.log("ENTORNO Estado actual de valores:", currentV)
+            return currentV;
+        } 
         // Si no existe, revisar el padre y así en recursividad
         if (!currentV && this.padre) {
             return this.padre.getVariable(nombre);
@@ -48,7 +51,7 @@ export class Entorno {
         getBracketVar(nombre) {
             const currentV = this.valores[nombre];
             // Solo revisa si existe en el entorno actual
-            if (currentV) return currentV;
+            if (currentV !== undefined) return currentV;
     
             console.log(`la variable: ${nombre} no existe en el entorno actual`);
             return null;
@@ -65,7 +68,7 @@ export class Entorno {
     updateVariable(nombre, valor, tipo, simbType, linea, columna) {
         const valorAssign = this.valores[nombre];
         // Si existe la variable, actualizar su valor y demás propiedades
-        if (valorAssign) {
+        if (valorAssign !== undefined) {
             this.valores[nombre] = { 
                 ...valorAssign, // solo para mantener las propiedades anteriores
                 valor // update solo valor

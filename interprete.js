@@ -1,7 +1,8 @@
 import { Entorno } from "./entorno.js";
 import { CasesSwitch } from "./nodos.js";
 import { BaseVisitor } from "./visitor.js";
-
+import nodos, { Expresion } from './nodos.js'
+import { BreakException, ContinueException, ReturnException } from "./stcTranz.js";
 // SE COPIA DEL VISITOR.JS PARA REALIZAR LA IMPLEMENTACION 
 
 export class InterpreterVisitor extends BaseVisitor {
@@ -12,6 +13,8 @@ export class InterpreterVisitor extends BaseVisitor {
         this.entornoActual = new Entorno();
         this.symbols = symbols;
         this.errores = errores;
+
+        this.flowControlContinue = null;
         //LA RESPUESTA QUE SE VA A MOSTRAR en sonsola
         this.salida = '';
     }
@@ -25,7 +28,7 @@ export class InterpreterVisitor extends BaseVisitor {
         //regresa el numero
         const izq = node.izq.accept(this);
         const der = node.der.accept(this);
-
+        console.log("Operacion", izq, node.op, der);
 
         const tipoIzq = node.izq.tipo;
         const tipoDer = node.der.tipo
@@ -59,6 +62,7 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.valor = null;
                     console.log(`Error de tipado: ${tipoIzq} + ${tipoDer}`);
                     this.errores.addError("semantico", `Error de tipado: ${tipoIzq} + ${tipoDer}`, node.location.end.line, node.location.end.column);
+                    return;
                     //throw new Error(`Error de tipado: ${tipoIzq} + ${tipoDer}`);
                 }
             case '-':
@@ -83,6 +87,7 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.valor = null;
                     console.log(`Error de tipado: ${tipoIzq} - ${tipoDer}`);
                     this.errores.addError("semantico", `Error de tipado: ${tipoIzq} - ${tipoDer}`, node.location.end.line, node.location.end.column);
+                    return;
                     
                 }
     
@@ -111,6 +116,7 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.valor = null;
                     console.log(`Error de tipado: ${tipoIzq} * ${tipoDer}`);
                     this.errores.addError("semantico", `Error de tipado: ${tipoIzq} * ${tipoDer}`, node.location.end.line, node.location.end.column);
+                    return;
 
                 }
     
@@ -145,6 +151,7 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.valor = null;
                     console.log(`Error de tipado: ${tipoIzq} / ${tipoDer}`);
                     this.errores.addError("semantico", `Error de tipado: ${tipoIzq} / ${tipoDer}`, node.location.end.line, node.location.end.column);
+                    return;
                 }
             case '%':
                 if (der === 0) {
@@ -167,6 +174,7 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.valor = null;
                     console.log(`Error de tipado: ${tipoIzq} % ${tipoDer}`);
                     this.errores.addError("semantico", `Error de tipado: ${tipoIzq} % ${tipoDer}`, node.location.end.line, node.location.end.column);
+                    return;
                 }
 
                 case '>=':
@@ -191,6 +199,7 @@ export class InterpreterVisitor extends BaseVisitor {
                         //console.log("Error de tipado: ", tipoIzq, tipoDer);
                         console.log(`Error de tipado: ${tipoIzq} >= ${tipoDer}`);
                         this.errores.addError("semantico",`Error de tipado: ${tipoIzq} >= ${tipoDer}`, node.location.end.line, node.location.end.column);
+                        return;
                     }
         
                 case '<=':
@@ -212,6 +221,7 @@ export class InterpreterVisitor extends BaseVisitor {
                         node.valor = null;
                         console.log(`Error de tipado: ${tipoIzq} <= ${tipoDer}`);
                         this.errores.addError("semantico",`Error de tipado: ${tipoIzq} <= ${tipoDer}`, node.location.end.line, node.location.end.column);
+                        return;
                     }
 
                     case '>':
@@ -235,6 +245,7 @@ export class InterpreterVisitor extends BaseVisitor {
                             node.valor = null;
                             console.log(`Error de tipado: ${tipoIzq} > ${tipoDer}`);
                             this.errores.addError("semantico",`Error de tipado: ${tipoIzq} > ${tipoDer}`, node.location.end.line, node.location.end.column);
+                            return;
                         }
             
                     case '<':
@@ -256,6 +267,7 @@ export class InterpreterVisitor extends BaseVisitor {
                             node.valor = null;
                             console.log(`Error de tipado: ${tipoIzq} < ${tipoDer}`);
                             this.errores.addError("semantico",`Error de tipado: ${tipoIzq} < ${tipoDer}`, node.location.end.line, node.location.end.column);
+                            return;
                         }
                     
                         case '==':
@@ -287,6 +299,7 @@ export class InterpreterVisitor extends BaseVisitor {
                                 node.valor = null;
                                 console.log(`Error de tipado: ${tipoIzq} == ${tipoDer}`);
                                 this.errores.addError("semantico",`Error de tipado: ${tipoIzq} == ${tipoDer}`, node.location.end.line, node.location.end.column);
+                                return;
                             }
                 
                         case '!=':
@@ -318,6 +331,7 @@ export class InterpreterVisitor extends BaseVisitor {
                                 node.valor = null;
                                 console.log(`Error de tipado: ${tipoIzq} != ${tipoDer}`);
                                 this.errores.addError("semantico",`Error de tipado: ${tipoIzq} != ${tipoDer}`, node.location.end.line, node.location.end.column);
+                                return;
                             }
 
                             case '&&':
@@ -332,6 +346,7 @@ export class InterpreterVisitor extends BaseVisitor {
                                     node.valor = null;
                                     console.log(`Error de tipado: ${tipoIzq} && ${tipoDer}`);
                                     this.errores.addError("semantico",`Error de tipado: ${tipoIzq} && ${tipoDer}`, node.location.end.line, node.location.end.column);
+                                    return;
                                 }
         
                             case '||':
@@ -346,6 +361,7 @@ export class InterpreterVisitor extends BaseVisitor {
                                     node.valor = null;
                                     console.log(`Error de tipado: ${tipoIzq} || ${tipoDer}`);
                                     this.errores.addError("semantico",`Error de tipado: ${tipoIzq} || ${tipoDer}`, node.location.end.line, node.location.end.column);
+                                    return;
                                 }
             default:
                 console.log(`Error Operador no soportado: ${node.op}`);
@@ -522,13 +538,16 @@ export class InterpreterVisitor extends BaseVisitor {
 
         const nombreVariable = node.id;
         const infoVariable = this.entornoActual.getVariable(nombreVariable);
-        //console.log("return de la variable", infoVariable);
+        console.log("!!!1 return de la variable", this.entornoActual.getVariable(nombreVariable));
+        console.log("!!!2 return de la variable", infoVariable);
         if(infoVariable != null){ 
-        //console.log("RefVar", infoVariable.valor, infoVariable.tipo);
+        console.log("RefVar!!!" , infoVariable.valor, infoVariable.tipo);
         node.valor = infoVariable.valor;
         node.tipo = infoVariable.tipo;
-        return infoVariable.valor;
-        } else {
+        console.log("RefVar---FINAL", node);
+        return node.valor;
+        } 
+        else {
                 console.log(`Error: Variable ${nombreVariable} no definida`);
                 this.errores.addError("semantico",`Error: Variable ${nombreVariable} no definida`, node.location.end.line, node.location.end.column);
 
@@ -545,6 +564,7 @@ export class InterpreterVisitor extends BaseVisitor {
     //SI HAY UN NUMERO/STRING DEVUELVE EL OBJETO, EN CAMBIO SI YA PASO POR SUMA RESTA ETC DEVUELVE EL VALOR
     visitPrint(node) {
         const valorPrint = node.exp.accept(this);
+        //console.log("7Print", valorPrint);
         this.salida += valorPrint + '\n';
     }
 
@@ -553,7 +573,6 @@ export class InterpreterVisitor extends BaseVisitor {
      * @type {BaseVisitor['visitIf']}
      */
     visitIf(node) {
-        try {
             const conditionIf = node.condition.accept(this);
         
             if (conditionIf) {
@@ -562,13 +581,6 @@ export class InterpreterVisitor extends BaseVisitor {
                 node.falseBracket.accept(this);
             }
 
-        } catch (error) {
-            console.log('Error  IF:', error);
-            this.errores.addError("semantico",`Error dentro del IF`, node.location.end.line, node.location.end.column);
-
-        }
-
-
     }
 
 //WHILE
@@ -576,13 +588,39 @@ export class InterpreterVisitor extends BaseVisitor {
      * @type {BaseVisitor['visitWhile']}
      */
     visitWhile(node) {
+        const startingEn = this.entornoActual;
+        const tipadoCond = node.condition.accept(this);
+
         try {
-        while (node.condition.accept(this)) {
-            node.whileBracket.accept(this);
-            //console.log("dentro while");
-        }}catch (error) {
-            console.log('Error  while:', error);
+            
+            if (tipadoCond !== true && tipadoCond !== false) {
+                console.log("Error: Se esperaba una condicion booleana en el while");
+                this.errores.addError("semantico",`Error: Se esperaba una condicion booleana en el while`, node.location.end.line, node.location.end.column);
+                return;
+            }
+
+            while (node.condition.accept(this)) {
+                node.whileBracket.accept(this);
+                //console.log("dentro while");
+            }
+
+        }catch (error) {
+        this.entornoActual = startingEn;
+// aca solo se rompe el while
+        if (error instanceof BreakException) {
+            console.log('break');
+            return
+        }
+
+        //llevar la cuenta de que se tiene que continuar - rec
+        if (error instanceof ContinueException) {
+            return this.visitWhile(node);
+        }
+/*            console.log('Error  while:', error);
             this.errores.addError("semantico",`Error dentro de While`, node.location.end.line, node.location.end.column);
+*/ 
+        throw error;
+
         }
     }
 
@@ -592,53 +630,126 @@ export class InterpreterVisitor extends BaseVisitor {
      * @type {BaseVisitor['visitFor']}
      */
     visitFor(node) {
-        try {
-        while (node.condition.accept(this)) {
-            node.forBracket.accept(this);
-            //console.log("dentro for");
-        }}catch (error) {
+        //try {
+        // va a controlar el flujo para cuando se usan continues y breaks
+        const prevFlow = this.flowControlContinue;
+        this.flowControlContinue = node.update;
+
+        const imp_For_bw = new nodos.Brackets({
+            declaraciones: [
+                node.initialization,
+                new nodos.While({
+                    condition: node.condition,
+                    whileBracket: new nodos.Brackets({
+                        declaraciones: [
+                            node.forBracket,
+                            node.update
+                        ]
+                    })
+                })
+            ]
+        })
+
+        imp_For_bw.accept(this);
+
+        this.flowControlContinue = prevFlow;
+
+        /*}catch (error) {
             console.log('Error  for:', error);
             this.errores.addError("semantico",`Error dentro del FOR`, node.location.end.line, node.location.end.column);
-        }
+        }*/
     }
 
 
+    //-------- TRANSFERENCIA -> CONTINUE, RETURN Y BREAK
+        /**
+     * @type {BaseVisitor['visitBreak']}
+     */
+        visitBreak(node) {
+            throw new BreakException();
+        }
+    
+        /**
+         * @type {BaseVisitor['visitContinue']}
+         */
+        visitContinue(node) {
+            if (this.flowControlContinue) {
+                this.flowControlContinue.accept(this);
+            }
+    
+            throw new ContinueException();
+
+        }
+    
+        /**
+         * @type {BaseVisitor['visitReturn']}
+         */
+        visitReturn(node) {
+            let rtnValue = null
+            if (node.exp) {
+                node.valor = node.exp.accept(this);
+                node.tipo = node.exp.tipo
+                rtnValue = node.exp.accept(this);
+            }
+            throw new ReturnException(rtnValue);
+        }
+
+ //----------------------switch---------------------------------------
     /**
      * @type {BaseVisitor['visitSwitch']}
      */
     visitSwitch(node) {
-        const switchValue = node.exp.accept(this);
-        let matched = false;
-        console.log ("[Switch]", node);
-        
 
-    for (const caseNode of node.cases) {
-            const caseValue = caseNode.valorCase.accept(this);
-            console.log("caseNode", caseNode.declaraciones);
-            // Check if case value matches switch value
-            if (caseValue === switchValue && caseNode.valorCase.tipo === node.exp.tipo) {
-                const previousEn = this.entornoActual;
-                this.entornoActual = new Entorno(previousEn);
-                matched = true; //que si ya entro no salga
-                caseNode.declaraciones.forEach(declacion => declacion.accept(this));
-                this.entornoActual = previousEn;
-                node.valor = caseValue;
-                node.tipo = caseNode.valorCase.tipo;
-                break; 
+        const startingEn = this.entornoActual;
+        try {
+
+                const switchValue = node.exp.accept(this);
+                let matched = false;
+                console.log ("[Switch]", node);
+                
+
+                for (const caseNode of node.cases) {
+                        const caseValue = caseNode.valorCase.accept(this);
+                        console.log("caseNode", caseNode.declaraciones);
+                        // compara los casos
+                        if (caseValue === switchValue && caseNode.valorCase.tipo === node.exp.tipo) {
+                            const previousEn = this.entornoActual;
+                            this.entornoActual = new Entorno(previousEn);
+                            matched = true; //que si ya entro no salga
+                            caseNode.declaraciones.forEach(declacion => declacion.accept(this));
+                            this.entornoActual = previousEn;
+                            node.valor = caseValue;
+                            node.tipo = caseNode.valorCase.tipo;
+                            break; 
+                        }
+                }
+
+                // si no hay un case que coincida con el valor del switch
+                if (!matched) {
+                    console.log("default");
+                    if (node.Default) {
+                        console.log("default");
+                        node.valor = "null";
+                        node.tipo = "default";
+                        node.Default.accept(this); // execute default
+                    }
+                }
+            }catch (error) {
+                this.entornoActual = startingEn;
+        // romper el caso
+            if (error instanceof BreakException) {
+                console.log('break');
+                return
             }
-    }
 
-        // If no case matched, handle default case if present
-        if (!matched) {
-            console.log("default");
-            if (node.Default) {
-                console.log("default");
-                node.valor = "null";
-                node.tipo = "default";
-                node.Default.accept(this); // Execute statements in the default block
+            
+            if (error instanceof ContinueException) {
+                this.errores.addError("semantico",`continue dentro de un switch`, node.location.end.line, node.location.end.column);
+                
             }
-        }
+            throw error;
 
+            }
 
     }
 //CasesSwitch
@@ -657,6 +768,9 @@ export class InterpreterVisitor extends BaseVisitor {
 
         //this.entornoActual = previousEn;
     }
+
+
+
 
 
         //TERNARIO
