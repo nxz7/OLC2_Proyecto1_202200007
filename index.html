@@ -87,6 +87,7 @@
     <textarea id="editor" placeholder="Ingrese expresión..."></textarea>
     <button id="btn">Ejecutar</button>
     <button id="open-file-btn">Abrir Archivo</button>
+    <button id="save-file-btn">Guardar Archivo</button>
     <input type="file" id="file-input" class="file-input-container" accept=".oak">
   </div>
 
@@ -111,6 +112,18 @@
         reader.readAsText(file);
       }
     });
+
+    document.getElementById('save-file-btn').addEventListener('click', function() {
+      const textToSave = document.getElementById('editor').value;
+      const blob = new Blob([textToSave], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'archivo.oak';
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+    
   </script>
 </body>
 
