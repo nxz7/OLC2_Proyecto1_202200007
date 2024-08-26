@@ -63,6 +63,12 @@
 
  * @typedef {import('./nodos.js').Brackets} Brackets
 
+
+ * @typedef {import('./nodos.js').Call} Call
+
+
+ * @typedef {import('./nodos.js').Typeof} Typeof
+
  */
 
 
@@ -259,6 +265,24 @@ export class BaseVisitor {
      */
     visitBrackets(node) {
         throw new Error('Metodo visitBrackets no implementado');
+    }
+    
+
+    /**
+     * @param {Call} node
+     * @returns {any}
+     */
+    visitCall(node) {
+        throw new Error('Metodo visitCall no implementado');
+    }
+    
+
+    /**
+     * @param {Typeof} node
+     * @returns {any}
+     */
+    visitTypeof(node) {
+        throw new Error('Metodo visitTypeof no implementado');
     }
     
 }

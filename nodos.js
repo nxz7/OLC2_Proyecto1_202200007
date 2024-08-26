@@ -705,4 +705,62 @@ export class Brackets extends Expresion {
     }
 }
     
-export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Switch, CasesSwitch, For, Break, Continue, Return, Ternario, Brackets }
+export class Call extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion} options.callee lo que se va a llamar
+ * @param {Expresion[]} options.argumentos arreglo si tiene
+    */
+    constructor({ callee, argumentos }) {
+        super();
+        
+        /**
+         * lo que se va a llamar
+         * @type {Expresion}
+        */
+        this.callee = callee;
+
+
+        /**
+         * arreglo si tiene
+         * @type {Expresion[]}
+        */
+        this.argumentos = argumentos;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitCall(this);
+    }
+}
+    
+export class Typeof extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion[]} options.argumentos arreglo si tiene
+    */
+    constructor({ argumentos }) {
+        super();
+        
+        /**
+         * arreglo si tiene
+         * @type {Expresion[]}
+        */
+        this.argumentos = argumentos;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitTypeof(this);
+    }
+}
+    
+export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Switch, CasesSwitch, For, Break, Continue, Return, Ternario, Brackets, Call, Typeof }

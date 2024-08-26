@@ -19,6 +19,8 @@
       'break': nodos.Break,
       'continue': nodos.Continue,
       'return': nodos.Return,
+      'call': nodos.Call,
+      'typeof': nodos.Typeof,
       'assign': nodos.Assign,
       'ternario': nodos.Ternario,
       'brackets': nodos.Brackets,
@@ -174,13 +176,30 @@ Multiplicacion = izq:Unaria expansion:(
 }
 
 Unaria = ope:("-"/"!") _ num:Unaria { return crearNodo('unaria', { op: ope, exp: num }) }
+/ Call
+
+Call = callee:TypeOF _ params:("(" argumentos:Argz? ")" { return argumentos })* {
+  return params.reduce(
+    (callee, argumentos) => {
+      return crearNodo('call', { callee, argumentos: argumentos || [] })
+    },
+    callee
+  )
+}
+
+TypeOF = "typeof"  _ argumentos:Expresion _  {return crearNodo('typeof', {  argumentos: argumentos || [] })}
 / Prim
+
+
+Argz = argum:Expresion _ argumentos:("," _ exp:Expresion { return exp })* { return [argum, ...argumentos] }
+
+
 
 tipoFloat =[0-9]+( "." [0-9]+ ) {return parseFloat(text(), 10)}
 tipoInt = [0-9]+ {return parseInt(text(), 10)}
 
 
-Prim =   floatN:tipoFloat {return crearNodo('Primitivos', { valor: floatN, tipo: "float" })}
+Prim =  floatN:tipoFloat {return crearNodo('Primitivos', { valor: floatN, tipo: "float" })}
   / intN:tipoInt {return crearNodo('Primitivos', { valor: intN, tipo: "int" })}
   /"true" {return crearNodo('Primitivos', { valor: true, tipo: "boolean" })}
   /"false" {return crearNodo('Primitivos', { valor: false, tipo: "boolean" })}
@@ -190,6 +209,7 @@ Prim =   floatN:tipoFloat {return crearNodo('Primitivos', { valor: floatN, tipo:
   / str:String { return crearNodo('Primitivos', { valor: str, tipo: "string" }) }
   / char:Charr { return crearNodo('Primitivos', { valor: char, tipo: "char" }) }
   / "null" {return crearNodo('Primitivos', { valor: null, tipo: "null" })}
+
 
 TiposVar = "int"{ return text() } 
 / "float"{ return text() } 

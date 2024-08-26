@@ -3,6 +3,8 @@ import { CasesSwitch } from "./nodos.js";
 import { BaseVisitor } from "./visitor.js";
 import nodos, { Expresion } from './nodos.js'
 import { BreakException, ContinueException, ReturnException } from "./stcTranz.js";
+import { Invoke } from "./invoke.js";
+import { native } from "./nativeFunc.js";
 // SE COPIA DEL VISITOR.JS PARA REALIZAR LA IMPLEMENTACION 
 
 export class InterpreterVisitor extends BaseVisitor {
@@ -21,6 +23,11 @@ export class InterpreterVisitor extends BaseVisitor {
             'while', 'for', 'if', 'else', 'break', 'continue', 'return', 'switch', 'case', 'default', 
             'System.out.println', 'int', 'float', 'boolean', 'char', 'string', 'true', 'false', 'null', 'void', 'var', 'length', 'var', 'join()','join', 'indexOf','struct', 'var', 'parsefloat', 'parsefloat()', 'toString', 'tolowerCase', 'parseInt', 'toUpperCase', 'typeof'
         ];
+
+        Object.entries(native).forEach(([nombre, funcion]) => {
+            this.entornoActual.addVariable(nombre, funcion);
+        });
+
     }
 
 //AGREGAR ESTO ES SOLO PARA TENER LA INFO
@@ -931,4 +938,110 @@ export class InterpreterVisitor extends BaseVisitor {
     }
     }
 
+
+        /**
+    * @type {BaseVisitor['visitCall']}
+    */
+        visitCall(node) {
+            const funcion = node.callee.accept(this);
+    
+            const argzVar = node.argumentos.map(arg => arg.accept(this));
+
+
+    
+            if (!(funcion instanceof Invoke)) {
+                console.log("Error, la funcion no es invocable");
+                this.errores.addError("semantico","la funcion no es invocable", node.location.end.line, node.location.end.column);
+
+            }
+
+            if (funcion.argz() !== argzVar.length) {
+                console.log("Error, los parametros encontrados no coinciden con los argumentos de la funcion");
+                this.errores.addError("semantico","los parametros encontrados no coinciden con los argumentos de la funcion", node.location.end.line, node.location.end.column);
+
+            }
+    
+            
+            switch(node.callee.id){
+                
+                    case "parseInt":
+                        if (node.argumentos[0].tipo == "string" && !isNaN(funcion.invoking(this, argzVar)) ){
+                            node.valor = funcion.invoking(this, argzVar);
+                            node.tipo = "int";
+                            
+                            return node.valor;
+                        }else {
+                            console.log("Error de tipado en parseInt");
+                            this.errores.addError("semantico","Error de tipado en parseInt", node.location.end.line, node.location.end.column);
+                            return null;
+                        }
+
+                    case "parsefloat":
+                        if (node.argumentos[0].tipo == "string" && !isNaN(funcion.invoking(this, argzVar)) ){
+                            node.valor = funcion.invoking(this, argzVar);
+                            node.tipo = "float";
+                            return node.valor;
+                        }else {
+                            console.log("Error de tipado en parsefloat");
+                            this.errores.addError("semantico","Error de tipado en parsefloat", node.location.end.line, node.location.end.column);
+                            return null;
+                        }
+
+                    case "toString":
+                        if ((node.argumentos[0].tipo == "float"||node.argumentos[0].tipo == "int" ||node.argumentos[0].tipo == "boolean")){
+                            node.valor = funcion.invoking(this, argzVar);
+                            node.tipo = "string";
+                            return node.valor;
+                        }else {
+                            console.log("Error de tipado en toString");
+                            this.errores.addError("semantico","Error de tipado en toString", node.location.end.line, node.location.end.column);
+                            return null;
+                        }
+
+                    case "toLowerCase":
+                        if (node.argumentos[0].tipo == "string"  ){
+                            node.valor = funcion.invoking(this, argzVar);
+                            node.tipo = "string";
+                            return node.valor;
+                        }else {
+                            console.log("Error de tipado en toLowerCase");
+                            this.errores.addError("semantico","Error de tipado en toLowerCase", node.location.end.line, node.location.end.column);
+                            return null;
+                        }
+
+                    case "toUpperCase":
+                        if (node.argumentos[0].tipo == "string" ){
+                            node.valor = funcion.invoking(this, argzVar);
+                            node.tipo = "string";
+                            return node.valor;
+                        }else {
+                            console.log("Error de tipado en toUpperCase");
+                            this.errores.addError("semantico","Error de tipado en toUpperCase", node.location.end.line, node.location.end.column);
+                            return null;
+                        }
+
+            }
+
+            console.log("Error llamada a funcion");
+            this.errores.addError("semantico","Error llamada a funcion", node.location.end.line, node.location.end.column);
+            return null;
+        }
+
+                /**
+    * @type {BaseVisitor['visitTypeof']}
+    */
+        visitTypeof(node) {
+            node.argumentos.accept(this);
+
+            if (node.argumentos.tipo != null){
+                node.valor = node.argumentos.tipo;
+                node.tipo = "string";
+                return node.valor;
+            }else {
+                console.log("Error de tipado en typeof");
+                this.errores.addError("semantico","Error de tipado en typeof", node.location.end.line, node.location.end.column);
+                return null;
+            }
+
+        }
 }
