@@ -11,7 +11,6 @@ class NativeFunc extends Invoke {
 
 
 export const native = {
-    'time': new NativeFunc(() => 0, () => new Date().toISOString()),
     'parseInt': new NativeFunc(
         () => 1,
         (interprete, value) => {

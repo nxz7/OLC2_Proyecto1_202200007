@@ -69,6 +69,12 @@
 
  * @typedef {import('./nodos.js').Typeof} Typeof
 
+
+ * @typedef {import('./nodos.js').DeclaracionArreglo} DeclaracionArreglo
+
+
+ * @typedef {import('./nodos.js').DeclaracionArregloSize} DeclaracionArregloSize
+
  */
 
 
@@ -283,6 +289,24 @@ export class BaseVisitor {
      */
     visitTypeof(node) {
         throw new Error('Metodo visitTypeof no implementado');
+    }
+    
+
+    /**
+     * @param {DeclaracionArreglo} node
+     * @returns {any}
+     */
+    visitDeclaracionArreglo(node) {
+        throw new Error('Metodo visitDeclaracionArreglo no implementado');
+    }
+    
+
+    /**
+     * @param {DeclaracionArregloSize} node
+     * @returns {any}
+     */
+    visitDeclaracionArregloSize(node) {
+        throw new Error('Metodo visitDeclaracionArregloSize no implementado');
     }
     
 }

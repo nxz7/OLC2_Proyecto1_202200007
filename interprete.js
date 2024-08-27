@@ -30,6 +30,7 @@ export class InterpreterVisitor extends BaseVisitor {
 
     }
 
+
 //AGREGAR ESTO ES SOLO PARA TENER LA INFO
 
     /**
@@ -1041,6 +1042,77 @@ export class InterpreterVisitor extends BaseVisitor {
                 console.log("Error de tipado en typeof");
                 this.errores.addError("semantico","Error de tipado en typeof", node.location.end.line, node.location.end.column);
                 return null;
+            }
+
+        }
+
+        getArrayDimensions(arr) {
+            if (!Array.isArray(arr)) {
+                return 0; // no es arreglo
+            }
+            let dimensions = 0;
+            while (Array.isArray(arr)) {
+                dimensions++;
+                arr = arr[0]; // baja las dimensiones
+            }
+            return dimensions;
+        }
+
+        checkAllSame(arr) {
+            // tener las dimensiones para recorrer
+            const dimensions = this.getArrayDimensions(arr);
+            if (dimensions === 0) {
+                return null;
+                //por si no es un arreglo
+            }
+            // pasarlo a 1D para recorrer mas facil
+            const flatArray = arr.flat(dimensions - 1);
+            const repetido = flatArray[0];
+            for (let i = 1; i < flatArray.length; i++) {
+                if (flatArray[i] !== repetido) {
+                    return null; // si no es igual
+                }
+            }
+            return repetido;
+        }
+        /**
+         * @type {BaseVisitor['visitDeclaracionArregloe']}
+         */
+        visitDeclaracionArreglo(node){
+            console.log("DeclaracionArreglo", node.exp);
+            const dimensionDeclarada= node.dimension;
+            const dimensionExp = this.getArrayDimensions(node.exp);
+            if ((dimensionDeclarada == dimensionExp) ) {
+
+                if(dimensionDeclarada==1){
+                    const valorArreglo = node.exp.map(ex => ex.accept(this));
+                    const tipoArreglo = node.exp.map(ex => ex.tipo);
+                    const tipoArregloFinal = this.checkAllSame(tipoArreglo);
+
+                    if(tipoArregloFinal != node.tipoz){
+                        console.log("ERROR arreglo - error de tipos en el arreglo");
+                        this.errores.addError("semantico","ERROR arreglo - error de tipos en el arreglo", node.location.end.line, node.location.end.column);
+                        node.valor = null;
+                        node.tipo = "error";
+                        return null;
+                    }
+                    node.valor = valorArreglo;
+                    node.tipo =node.tipoz;
+                    console.log("DeclaracionArreglo:", node.id, valorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
+                    this.entornoActual.addVariable(node.id, valorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
+                    this.symbols.addVariable(node.id, valorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
+
+                }else{
+                    console.log("MATRICES ACA");
+                    //MATRICES ACA
+                }
+            }else {
+                console.log("ERROR arreglo/matrix las dimensiones establecidas no coinciden con las dimensiones del arreglo");
+                this.errores.addError("semantico","ERROR arreglo/matrix las dimensiones establecidas no coinciden con las dimensiones del arreglo", node.location.end.line, node.location.end.column);
+                node.valor = null;
+                node.tipo = "error";
+                return null;
+
             }
 
         }

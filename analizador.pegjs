@@ -20,6 +20,7 @@
       'continue': nodos.Continue,
       'return': nodos.Return,
       'call': nodos.Call,
+      'declaracionArreglo': nodos.DeclaracionArreglo,
       'typeof': nodos.Typeof,
       'assign': nodos.Assign,
       'ternario': nodos.Ternario,
@@ -42,12 +43,30 @@ Declaracion = decl:DecVariable _ { return decl }
 
 //---------------declaracion de variables, clases y funciones
 DecVariable = "var" _ id:ID _ "=" _ exp:Expresion _ ";" { return crearNodo('declaracionVar', { id, exp}) }
+            / DeclaracionArray
             / tipoz:TiposVar _ id:ID _  
             TipadoValor:(
               "=" _ TipadoValor:Expresion _  { return  TipadoValor  }
             )?_";" { return crearNodo('declaracionVarTipo', { id, exp:TipadoValor, tipoz }) }
 
-//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//>>>>>>>>>>>>>>>>>>>>>>ARREGLOS>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//dimension de acuerdo a los corchetes (array o matrix )
+DeclaracionArray = tipoz:TiposVar dims:Corchetes* _ id:ID _ "=" _ exp:MainArrayElements _ ";" {
+  return crearNodo('declaracionArreglo', {id,exp, tipoz, dimension: dims.length});
+}
+
+
+Corchetes ="[]" { return text() }
+
+MainArrayElements = "{" _ elements:NestedArrayElements _ "}" {
+  return elements;
+}
+
+//lleno de expresiones o mas arreglos(matriz)- recursivo
+NestedArrayElements = head:(Expresion / MainArrayElements) tail:(_ "," _ (Expresion / MainArrayElements))* {
+  return [head].concat(tail.map(function(element) { return element[3]; }));
+}
+
 
 //----------------aca van los print, if else y todo tipo de statements ---------------
 Statement = "System.out.println(" _ Listaexp:ListaExpresiones* _ ")" _ ";" { return crearNodo('print', { Listaexp }) }
