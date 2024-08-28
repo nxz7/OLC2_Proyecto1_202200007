@@ -52,8 +52,8 @@ DecVariable = "var" _ id:ID _ "=" _ exp:Expresion _ ";" { return crearNodo('decl
 
 //>>>>>>>>>>>>>>>>>>>>>>ARREGLOS>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 //dimension de acuerdo a los corchetes (array o matrix )
-DeclaracionArray = tipoz:TiposVar dims:Corchetes* _ id:ID _ "=" _ exp:MainArrayElements _ ";" {
-  return crearNodo('declaracionArreglo', {id,exp, tipoz, dimension: dims.length});
+DeclaracionArray = tipoz:TiposVar "[]" dims:Corchetes* _ id:ID _ "=" _ exp:MainArrayElements _ ";" {
+  return crearNodo('declaracionArreglo', {id,exp, tipoz, dimension: dims.length+1});
 }
 
 
@@ -61,6 +61,7 @@ Corchetes ="[]" { return text() }
 
 MainArrayElements = "{" _ elements:NestedArrayElements _ "}" {return elements;}
                   /"new" _ tipoNew:TiposVar exp:NestedSize { return crearNodo('asignacionArregloNew', { tipoNew, exp, dimNew:exp.length }) }
+                  / id:ID { return crearNodo('refVar', { id }) }
 
 NestedSize = "[" _ exp:Expresion _ "]" _ tail:("[" _ expTail:Expresion _ "]")* {
   return [exp].concat(tail.map(function(d) { return d[2]; }));
@@ -114,8 +115,12 @@ IntTernario = "?" { return text() }
 
 Expresion = Assign
 
-Assign = id:ID _ op:("="/"+="/"-=") _ assign:Expresion { return crearNodo('assign', { id, assign, op}) }
+Assign = id:ID _ op:("="/"+="/"-=") _ assign:AsignarNewValue { return crearNodo('assign', { id, assign, op}) }
           / Ternario
+
+AsignarNewValue =  "{" _ elements:NestedArrayElements _ "}" {return elements;}
+                /"new" _ tipoNew:TiposVar exp:NestedSize { return crearNodo('asignacionArregloNew', { tipoNew, exp, dimNew:exp.length }) }
+                /  exp:Expresion  { return exp }
 
 
 Ternario = condition:logicoOr _ IntTernario _ TrueB:Expresion _ ":" _ FalseB:Expresion {return crearNodo('ternario', { condition, TrueB, FalseB })} 
@@ -242,8 +247,9 @@ TiposVar = "int"{ return text() }
 
 
 // en cualquier lugar puede haber un espacio -> en cualquier lugar puede haber un comentario
-_ = [ \t\n\r]* Comentarios* [ \t\n\r]*
+_ = ([ \t\n\r] / Comentarios)* 
 
-Comentarios = "//" [^\n\r]* 
-  / "/*" (!"*/" .)* "*/"
+
+Comentarios = "//" (![\n] .)*
+            / "/*" (!("*/") .)* "*/"
 

@@ -40,7 +40,7 @@ export class InterpreterVisitor extends BaseVisitor {
         //regresa el numero
         const izq = node.izq.accept(this);
         const der = node.der.accept(this);
-        console.log("Operacion", izq, node.op, der);
+        //console.log("Operacion", izq, node.op, der);
 
         const tipoIzq = node.izq.tipo;
         const tipoDer = node.der.tipo
@@ -851,15 +851,162 @@ export class InterpreterVisitor extends BaseVisitor {
     }
 //OJO --> VER SI EXPRESSIONSTATEMENT NECESITA REGRESAR VALOR Y TIPO
 
+    getMultiDimensionalArrayLength(array) {
+        if (!Array.isArray(array)) {
+            return 0;
+        }
+        let length = 0;
+        for (let i = 0; i < array.length; i++) {
+            if (Array.isArray(array[i])) {
+                length += this.getMultiDimensionalArrayLength(array[i]);
+            } else {
+                length++;
+            }
+        }
+        return length;
+    }
+
+
     visitAssign(node) {
         const nombreVariable = node.id;
         const infoVariable = this.entornoActual.getVariable(nombreVariable);
-        const valor = node.assign.accept(this);
-        //console.log("Asiganr: ", node);
+        
+        if (infoVariable == null) {
+            console.log(`Error: Variable ${nombreVariable} no definida`);
+            this.errores.addError("semantico",`Error: Variable ${nombreVariable} no definida`, node.location.end.line, node.location.end.column);
+            node.valor = null;
+            node.tipo = 'error';
+            return null;
+        }
+
+        
         switch (node.op) {
         //console.log("azzzign", node.assign.tipo, node.assign.valor);
 
             case '=':
+                
+            if(Array.isArray(node.assign)){
+                console.log("arrayISarray", node)
+                const dimensionExp = this.getArrayDimensions(node.assign);
+
+                if(dimensionExp==1){
+                const valorArreglo = node.assign.map(assg => assg.accept(this));
+                const tipoArreglo = node.assign.map(assg => assg.tipo);
+                const tipoArregloFinal = this.checkAllSame(tipoArreglo);
+
+                if (tipoArregloFinal != infoVariable.tipo){
+                        console.log("ERROR arreglo - error de tipos en el arreglo");
+                        this.errores.addError("semantico","ERROR arreglo - error de tipos en el arreglo", node.location.end.line, node.location.end.column);
+                        node.valor = null;
+                        node.tipo = "error";
+                        return null;
+                }
+                const dimensionValor = this.getArrayDimensions(infoVariable.valor);
+                if (dimensionValor !== dimensionExp || infoVariable.valor.length !== valorArreglo.length){
+                        console.log("ERROR arreglo - el tamaño/dimension no coinciden");
+                        this.errores.addError("semantico","ERROR arreglo- el tamaño/dimension no coinciden", node.location.end.line, node.location.end.column);
+                        node.valor = null;
+                        node.tipo = "error";
+                        return null;
+
+                }
+
+                this.entornoActual.updateVariable(node.id, valorArreglo);
+                this.symbols.updateVariable(node.id, valorArreglo);
+                node.valor =valorArreglo;
+                node.tipo = infoVariable.tipo;
+                return valorArreglo;
+
+
+                }else{
+                    const valorArreglo = this.processMatrix(node.assign);
+                    const tipoArreglo = this.processMatrixTipo(node.assign);
+                    const tipoArregloFinal = this.checkAllSame(tipoArreglo);
+
+                if (tipoArregloFinal != infoVariable.tipo){
+                        console.log("ERROR matriz - error de tipos en el arreglo");
+                        this.errores.addError("semantico","ERROR matriz - error de tipos en el arreglo", node.location.end.line, node.location.end.column);
+                        node.valor = null;
+                        node.tipo = "error";
+                        return null;
+                }
+
+                const dimensionValor = this.getArrayDimensions(infoVariable.valor);
+                const lengthDeclarado = this.getMultiDimensionalArrayLength(infoVariable.valor);
+                const lengthAsignar = this.getMultiDimensionalArrayLength(valorArreglo);
+                console.log("length", lengthAsignar, lengthDeclarado);
+                if (dimensionValor !== dimensionExp || lengthDeclarado !== lengthAsignar){
+                        console.log("ERROR matriz - el tamaño/dimension no coinciden");
+                        this.errores.addError("semantico","ERROR matriz- el tamaño/dimension no coinciden", node.location.end.line, node.location.end.column);
+                        node.valor = null;
+                        node.tipo = "error";
+                        return null;
+
+                }
+
+                this.entornoActual.updateVariable(node.id, valorArreglo);
+                this.symbols.updateVariable(node.id, valorArreglo);
+                node.valor =valorArreglo;
+                node.tipo = infoVariable.tipo;
+                return valorArreglo;
+
+                }
+
+            }else{
+                console.log("ELSEnoArray", node);
+                console.log("antes! ", node);
+                const valor = node.assign.accept(this);
+                console.log("despues! ", node);
+
+                if(Array.isArray(valor)){
+                        const dimensionAsignada = this.getArrayDimensions(valor);
+                        const dimensionDeclarada = this.getArrayDimensions(infoVariable.valor);
+                        console.log("dimensiones", dimensionAsignada, dimensionDeclarada);
+                        if(dimensionAsignada !== dimensionDeclarada){
+                            console.log("ERROR arreglo - la dimension no coinciden");
+                            this.errores.addError("semantico","ERROR arreglo- la dimension no coinciden", node.location.end.line, node.location.end.column);
+                            node.valor = null;
+                            node.tipo = "error";
+                            return null;
+                        }
+
+                        if(dimensionAsignada == 1){
+                            
+                            if(infoVariable.valor.length !== valor.length || infoVariable.tipo !== node.assign.tipo){
+                                console.log("ERROR arreglo - la dimension o el tipo no coinciden");
+                                this.errores.addError("semantico","ERROR arreglo- la dimension o el tipo no coinciden", node.location.end.line, node.location.end.column);
+                                node.valor = null;
+                                node.tipo = "error";
+                                return null;
+                            }
+                            this.entornoActual.updateVariable(node.id, valor);
+                            this.symbols.updateVariable(node.id, valor);
+                            node.valor =valor;
+                            node.tipo = infoVariable.tipo;
+                            return valor;
+
+
+                        }else{
+                            const lengthDeclarado = this.getMultiDimensionalArrayLength(infoVariable.valor);
+                            const lengthAsignar = this.getMultiDimensionalArrayLength(valor);
+
+                            if (infoVariable.tipo !== node.assign.tipo && lengthDeclarado !== lengthAsignar){
+                                console.log("ERROR matrix - la dimension o el tipo no coinciden");
+                                this.errores.addError("semantico","ERROR matrix - la dimension o el tipo no coinciden", node.location.end.line, node.location.end.column);
+                                node.valor = null;
+                                node.tipo = "error";
+                                return null;
+                            }
+                            
+                            this.entornoActual.updateVariable(node.id, valor);
+                            this.symbols.updateVariable(node.id, valor);
+                            node.valor =valor;
+                            node.tipo = infoVariable.tipo;
+                            return valor;
+
+                        }
+                }else{
+                    
                 if(node.assign.tipo == infoVariable.tipo){
                     //const valor = node.assign.accept(this);
                     this.entornoActual.updateVariable(node.id, valor);
@@ -884,11 +1031,13 @@ export class InterpreterVisitor extends BaseVisitor {
                     console.log("Error de tipado en asignación, el valor declarado no coincide con el tipo de la variable");
                     this.errores.addError("semantico","Error de tipado en asignación, el valor declarado no coincide con el tipo de la variable", node.location.end.line, node.location.end.column);
                     return ;
-                }
+                }                
+            }
+            }
 
             case '+=':
                 if(node.assign.tipo == infoVariable.tipo){
-                    //const valor = node.assign.accept(this);
+                    const valor = node.assign.accept(this);
                     const addVariable = infoVariable.valor + valor;
                     this.entornoActual.updateVariable(node.id, addVariable);
                     this.symbols.updateVariable(node.id, addVariable);
@@ -896,7 +1045,7 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.tipo = infoVariable.tipo;
                     return addVariable;
                 } else if (node.assign.tipo == "int" && infoVariable.tipo == "float"){
-                    //const valor = node.assign.accept(this);
+                    const valor = node.assign.accept(this);
                     const addVariable = infoVariable.valor + valor;
                     node.valor = parseFloat(addVariable);
                     node.tipo = "float";
@@ -913,7 +1062,7 @@ export class InterpreterVisitor extends BaseVisitor {
 
             case '-=':
                 if(node.assign.tipo == infoVariable.tipo){
-                    //const valor = node.assign.accept(this);
+                    const valor = node.assign.accept(this);
                     const addVariable = infoVariable.valor - valor;
                     this.entornoActual.updateVariable(node.id, addVariable);
                     this.symbols.updateVariable(node.id, addVariable);
@@ -921,7 +1070,7 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.tipo = infoVariable.tipo;
                     return addVariable;
                 } else if (node.assign.tipo == "int" && infoVariable.tipo == "float"){
-                    //const valor = node.assign.accept(this);
+                    const valor = node.assign.accept(this);
                     const addVariable = infoVariable.valor - valor;
                     node.valor = parseFloat(addVariable);
                     node.tipo = "float";
@@ -1122,6 +1271,7 @@ export class InterpreterVisitor extends BaseVisitor {
 // if ---> new
 //else ---> declarados
             if (node.exp.tipoNew !== undefined){
+                //referencia a new
                 const ValorArreglo = node.exp.accept(this);
                 if (node.exp.dimNew == dimensionDeclarada &&  node.exp.tipoNew == node.tipoz){
                     node.valor = ValorArreglo;
@@ -1145,6 +1295,34 @@ export class InterpreterVisitor extends BaseVisitor {
                 }
 
 
+            }else if(node.exp.tipoNew == undefined && node.exp.id !== undefined){
+                //referencia a otra variable
+                const ValorArreglo = node.exp.accept(this);
+                const dimensionExp = this.getArrayDimensions(ValorArreglo);
+
+                //console.log("+++variable encontrada:", ValorArreglo, "dimensiones:", dimensionExp, "valor:", node.exp.valor, "tipo:", node.exp.tipo);
+
+                if ((dimensionDeclarada == dimensionExp) && (node.exp.tipo == node.tipoz)) {
+                    node.tipo = node.exp.tipo;
+                    node.valor = ValorArreglo;
+                    if(dimensionDeclarada==1){
+                        console.log("DeclaracionArreglo:", node.id, ValorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
+                        this.entornoActual.addVariable(node.id, ValorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
+                        this.symbols.addVariable(node.id, ValorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
+                        return;
+                    }
+                    console.log("DeclaracionMatrix:", node.id, ValorArreglo, node.tipo, "Matriz", node.location.end.line, node.location.end.column);
+                    this.entornoActual.addVariable(node.id, ValorArreglo, node.tipo, "Matriz", node.location.end.line, node.location.end.column);
+                    this.symbols.addVariable(node.id, ValorArreglo, node.tipo, "Matriz", node.location.end.line, node.location.end.column);
+                    return ;
+                }else{
+                    console.log("ERROR matriz - error de tipos en la matriz/arreglo o dimensiones no coinciden");
+                    this.errores.addError("semantico","ERROR matriz  - error de tipos en la matriz/arreglo o dimensiones no coinciden", node.location.end.line, node.location.end.column);
+                    node.valor = null;
+                    node.tipo = "error";
+                    return null;
+                }
+
             }else{
                 const dimensionExp = this.getArrayDimensions(node.exp);
                 if ((dimensionDeclarada == dimensionExp) ) {
@@ -1163,7 +1341,7 @@ export class InterpreterVisitor extends BaseVisitor {
                         }
                         node.valor = valorArreglo;
                         node.tipo =node.tipoz;
-                        console.log("DeclaracionArreglo2:", node.id, valorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
+                        console.log("DeclaracionArreglo:", node.id, valorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
                         this.entornoActual.addVariable(node.id, valorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
                         this.symbols.addVariable(node.id, valorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
 

@@ -40,7 +40,7 @@ export class Entorno {
             return this.padre.getVariable(nombre);
         }
 
-        console.log(`la variable:  ${nombre} - aun no existe en el entorno`);
+        //console.log(`la variable:  ${nombre} - aun no existe en el entorno`);
         return null;
     }
 
