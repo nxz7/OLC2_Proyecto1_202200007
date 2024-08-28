@@ -812,36 +812,36 @@ export class DeclaracionArreglo extends Expresion {
     }
 }
     
-export class DeclaracionArregloSize extends Expresion {
+export class AsignacionArregloNew extends Expresion {
 
     /**
     * @param {Object} options
-    * @param {string} options.id Identificador de la variable
- * @param {string} options.tipoz tipo variable
- * @param {number} options.dimension dimension del arreglo
+    * @param {string} options.tipoNew tipo variable
+ * @param {number} options.exp tamaño
+ * @param {number} options.dimNew dimension del arreglo
     */
-    constructor({ id, tipoz, dimension }) {
+    constructor({ tipoNew, exp, dimNew }) {
         super();
         
-        /**
-         * Identificador de la variable
-         * @type {string}
-        */
-        this.id = id;
-
-
         /**
          * tipo variable
          * @type {string}
         */
-        this.tipoz = tipoz;
+        this.tipoNew = tipoNew;
+
+
+        /**
+         * tamaño
+         * @type {number}
+        */
+        this.exp = exp;
 
 
         /**
          * dimension del arreglo
          * @type {number}
         */
-        this.dimension = dimension;
+        this.dimNew = dimNew;
 
     }
 
@@ -849,8 +849,8 @@ export class DeclaracionArregloSize extends Expresion {
      * @param {BaseVisitor} visitor
      */
     accept(visitor) {
-        return visitor.visitDeclaracionArregloSize(this);
+        return visitor.visitAsignacionArregloNew(this);
     }
 }
     
-export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Switch, CasesSwitch, For, Break, Continue, Return, Ternario, Brackets, Call, Typeof, DeclaracionArreglo, DeclaracionArregloSize }
+export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Switch, CasesSwitch, For, Break, Continue, Return, Ternario, Brackets, Call, Typeof, DeclaracionArreglo, AsignacionArregloNew }

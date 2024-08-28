@@ -50,8 +50,6 @@ export const native = {
     () => 1,
     (interprete, value) => {
         return String(value).toUpperCase();
-    }
-)
-
+    })
 
 }

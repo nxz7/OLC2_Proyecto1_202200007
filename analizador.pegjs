@@ -23,6 +23,7 @@
       'declaracionArreglo': nodos.DeclaracionArreglo,
       'typeof': nodos.Typeof,
       'assign': nodos.Assign,
+      'asignacionArregloNew': nodos.AsignacionArregloNew,
       'ternario': nodos.Ternario,
       'brackets': nodos.Brackets,
       'declaracionVarTipo': nodos.DeclaracionVarTipo,
@@ -58,8 +59,11 @@ DeclaracionArray = tipoz:TiposVar dims:Corchetes* _ id:ID _ "=" _ exp:MainArrayE
 
 Corchetes ="[]" { return text() }
 
-MainArrayElements = "{" _ elements:NestedArrayElements _ "}" {
-  return elements;
+MainArrayElements = "{" _ elements:NestedArrayElements _ "}" {return elements;}
+                  /"new" _ tipoNew:TiposVar exp:NestedSize { return crearNodo('asignacionArregloNew', { tipoNew, exp, dimNew:exp.length }) }
+
+NestedSize = "[" _ exp:Expresion _ "]" _ tail:("[" _ expTail:Expresion _ "]")* {
+  return [exp].concat(tail.map(function(d) { return d[2]; }));
 }
 
 //lleno de expresiones o mas arreglos(matriz)- recursivo

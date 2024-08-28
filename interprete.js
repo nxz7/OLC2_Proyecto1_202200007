@@ -599,7 +599,7 @@ export class InterpreterVisitor extends BaseVisitor {
             let valorPrint = exp.accept(this);
             console.log("Print", exp);
 
-            if (exp.tipo === 'string' && exp.valor != null && exp.valor!= undefined ) {
+            if (exp.tipo === 'string' && exp.valor != null && exp.valor!= undefined && !Array.isArray(exp.valor) ) {
             valorPrint = valorPrint
             .replace(/\\\\/g, '\\')   // UN SOLO SLASH
             .replace(/\\"/g, '"')     // UN SOLO QUOTE
@@ -1075,45 +1075,187 @@ export class InterpreterVisitor extends BaseVisitor {
             }
             return repetido;
         }
+
+
+        processMatrix(array) {
+            return array.map(item => {
+                if (Array.isArray(item)) {
+                    return this.processMatrix(item); // rec
+                } else {
+                    return item.accept(this); // cada elemento se evalua
+                }
+            });
+        }
+
+        processMatrixTipo(array) {
+            return array.map(item => {
+                if (Array.isArray(item)) {
+                    return this.processMatrixTipo(item); // rec
+                } else {
+                    return item.tipo; // cada elemento se evalua
+                }
+            });
+        }
+
         /**
-         * @type {BaseVisitor['visitDeclaracionArregloe']}
+         * @type {BaseVisitor['visitDeclaracionArreglo']}
          */
         visitDeclaracionArreglo(node){
-            console.log("DeclaracionArreglo", node.exp);
+            //console.log("DeclaracionArreglo1", node.exp);
             const dimensionDeclarada= node.dimension;
-            const dimensionExp = this.getArrayDimensions(node.exp);
-            if ((dimensionDeclarada == dimensionExp) ) {
 
-                if(dimensionDeclarada==1){
-                    const valorArreglo = node.exp.map(ex => ex.accept(this));
-                    const tipoArreglo = node.exp.map(ex => ex.tipo);
-                    const tipoArregloFinal = this.checkAllSame(tipoArreglo);
+            const infoVariable = this.entornoActual.getBracketVar(node.id);
 
-                    if(tipoArregloFinal != node.tipoz){
-                        console.log("ERROR arreglo - error de tipos en el arreglo");
-                        this.errores.addError("semantico","ERROR arreglo - error de tipos en el arreglo", node.location.end.line, node.location.end.column);
-                        node.valor = null;
-                        node.tipo = "error";
-                        return null;
+            const nombreVariable = node.id;
+
+            if (this.reservedWords.includes(nombreVariable)) {
+                console.log(`Error: '${nombreVariable}' es una palabra reservada y no puede ser usada como nombre de arreglo/matriz`);
+                this.errores.addError("semantico", `Error: '${nombreVariable}'es una palabra reservada y no puede ser usada como nombre de arreglo/matriz.`, node.location.end.line, node.location.end.column);
+                return;
+            }
+
+            if(infoVariable != null){
+                console.log("Error: Arreglo/Matriz ya declarada en el entorno actual");
+                this.errores.addError("semantico",`Error: Arreglo/Matriz ${nombreVariable} ya declarada en el entorno actual`, node.location.end.line, node.location.end.column);
+                return ;
+            }
+// if ---> new
+//else ---> declarados
+            if (node.exp.tipoNew !== undefined){
+                const ValorArreglo = node.exp.accept(this);
+                if (node.exp.dimNew == dimensionDeclarada &&  node.exp.tipoNew == node.tipoz){
+                    node.valor = ValorArreglo;
+                    node.tipo = node.exp.tipoNew;
+                    if(dimensionDeclarada==1){
+                        console.log("DeclaracionArreglo(new):", node.id, ValorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
+                        this.entornoActual.addVariable(node.id, ValorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
+                        this.symbols.addVariable(node.id, ValorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
+                        return;
                     }
-                    node.valor = valorArreglo;
-                    node.tipo =node.tipoz;
-                    console.log("DeclaracionArreglo:", node.id, valorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
-                    this.entornoActual.addVariable(node.id, valorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
-                    this.symbols.addVariable(node.id, valorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
-
+                    console.log("DeclaracionMatrix:", node.id, ValorArreglo, node.tipo, "Matriz", node.location.end.line, node.location.end.column);
+                    this.entornoActual.addVariable(node.id, ValorArreglo, node.tipo, "Matriz", node.location.end.line, node.location.end.column);
+                    this.symbols.addVariable(node.id, ValorArreglo, node.tipo, "Matriz", node.location.end.line, node.location.end.column);
+                    return ;
                 }else{
-                    console.log("MATRICES ACA");
-                    //MATRICES ACA
+                    console.log("ERROR arreglo/matrix  - error al declarar (tipado o dimensiones no coiciden)");
+                    this.errores.addError("semantico","ERROR arreglo/matrix  - error al declarar (tipado o dimensiones no coiciden)", node.location.end.line, node.location.end.column);
+                    node.valor = null;
+                    node.tipo = "error";
+                    return null;
                 }
-            }else {
-                console.log("ERROR arreglo/matrix las dimensiones establecidas no coinciden con las dimensiones del arreglo");
-                this.errores.addError("semantico","ERROR arreglo/matrix las dimensiones establecidas no coinciden con las dimensiones del arreglo", node.location.end.line, node.location.end.column);
-                node.valor = null;
-                node.tipo = "error";
-                return null;
 
+
+            }else{
+                const dimensionExp = this.getArrayDimensions(node.exp);
+                if ((dimensionDeclarada == dimensionExp) ) {
+
+                    if(dimensionDeclarada==1){
+                        const valorArreglo = node.exp.map(ex => ex.accept(this));
+                        const tipoArreglo = node.exp.map(ex => ex.tipo);
+                        const tipoArregloFinal = this.checkAllSame(tipoArreglo);
+
+                        if(tipoArregloFinal != node.tipoz){
+                            console.log("ERROR arreglo - error de tipos en el arreglo");
+                            this.errores.addError("semantico","ERROR arreglo - error de tipos en el arreglo", node.location.end.line, node.location.end.column);
+                            node.valor = null;
+                            node.tipo = "error";
+                            return null;
+                        }
+                        node.valor = valorArreglo;
+                        node.tipo =node.tipoz;
+                        console.log("DeclaracionArreglo2:", node.id, valorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
+                        this.entornoActual.addVariable(node.id, valorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
+                        this.symbols.addVariable(node.id, valorArreglo, node.tipo, "arreglo", node.location.end.line, node.location.end.column);
+
+                    }else{
+                        //console.log("MATRICES ACA");
+                        const valorArreglo = this.processMatrix(node.exp);
+                        const tipoArreglo = this.processMatrixTipo(node.exp);
+                        const tipoArregloFinal = this.checkAllSame(tipoArreglo);
+
+                        console.log("MATRIZ", valorArreglo, tipoArreglo, tipoArregloFinal);
+                        if(tipoArregloFinal != node.tipoz){
+                            console.log("ERROR matrix - error de tipos en la matriz");
+                            this.errores.addError("semantico","ERROR matrix  - error de tipos en la matriz", node.location.end.line, node.location.end.column);
+                            node.valor = null;
+                            node.tipo = "error";
+                            return null;
+                        }
+
+                        node.valor = valorArreglo;
+                        node.tipo = node.tipoz;
+                        console.log("DeclaracionMatrix:", node.id, valorArreglo, node.tipo, "Matriz", node.location.end.line, node.location.end.column);
+                        this.entornoActual.addVariable(node.id, valorArreglo, node.tipo, "Matriz", node.location.end.line, node.location.end.column);
+                        this.symbols.addVariable(node.id, valorArreglo, node.tipo, "Matriz", node.location.end.line, node.location.end.column);
+                    }
+                }else {
+                    console.log("ERROR arreglo/matrix las dimensiones establecidas no coinciden con las dimensiones del arreglo");
+                    this.errores.addError("semantico","ERROR arreglo/matrix las dimensiones establecidas no coinciden con las dimensiones del arreglo", node.location.end.line, node.location.end.column);
+                    node.valor = null;
+                    node.tipo = "error";
+                    return null;
+
+                }
             }
 
         }
+
+
+        generateNewArray(dimensions, value) {
+            if (dimensions.length === 0) {
+                return value;
+            }
+            const currentDimension = dimensions[0];
+            const restDimensions = dimensions.slice(1);
+            const array = new Array(currentDimension);
+            for (let i = 0; i < currentDimension; i++) {
+                array[i] = this.generateNewArray(restDimensions, value);
+            }
+            return array;
+        }
+        
+
+
+                /**
+         * @type {BaseVisitor['visitAsignacionArregloNew']}
+         */
+                visitAsignacionArregloNew(node){
+                    const valorArreglo = node.exp.map(ex => ex.accept(this));
+                    const tipoDeclarado= node.tipoNew;
+                    //console.log("AsignacionArregloNew", valorArreglo);
+
+                    let arrayResult;
+
+                    switch (tipoDeclarado) {
+                        case "string":
+                            arrayResult = this.generateNewArray(valorArreglo, "");
+                            
+                            break;
+                        case "int":
+                            arrayResult = this.generateNewArray(valorArreglo, 0);
+                            break;
+                        case "float":
+                            arrayResult = this.generateNewArray(valorArreglo, 0.0);
+                            break;
+                        case "char":
+                            arrayResult = this.generateNewArray(valorArreglo, '\u0000');
+                            break;
+                        case "boolean":
+                            arrayResult = this.generateNewArray(valorArreglo, false);
+                            break;
+                        default:
+                            node.valor= null;
+                            node.tipo = "error";
+                            console.log("Error en tipo de arreglo");
+                            this.errores.addError("semantico", "Error en tipo de arreglo", node.location.end.line, node.location.end.column);
+                            return null;
+                    }
+
+                    //console.log("Generated Array:", arrayResult);
+
+                    node.tipo = tipoDeclarado;
+                    node.valor = arrayResult;
+                    return arrayResult;
+
+                }
 }

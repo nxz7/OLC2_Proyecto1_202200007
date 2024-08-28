@@ -73,7 +73,7 @@
  * @typedef {import('./nodos.js').DeclaracionArreglo} DeclaracionArreglo
 
 
- * @typedef {import('./nodos.js').DeclaracionArregloSize} DeclaracionArregloSize
+ * @typedef {import('./nodos.js').AsignacionArregloNew} AsignacionArregloNew
 
  */
 
@@ -302,11 +302,11 @@ export class BaseVisitor {
     
 
     /**
-     * @param {DeclaracionArregloSize} node
+     * @param {AsignacionArregloNew} node
      * @returns {any}
      */
-    visitDeclaracionArregloSize(node) {
-        throw new Error('Metodo visitDeclaracionArregloSize no implementado');
+    visitAsignacionArregloNew(node) {
+        throw new Error('Metodo visitAsignacionArregloNew no implementado');
     }
     
 }

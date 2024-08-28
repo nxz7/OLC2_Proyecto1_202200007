@@ -22,7 +22,7 @@ export class Entorno {
          */
     addVariable(nombre, valor, tipo, simbType, linea, columna) {
         this.valores[nombre] = { valor, tipo, simbType, linea, columna };
-        console.log("Estado actual de valores:", this.valores);
+        //console.log("Estado actual de valores:", this.valores);
     }
 
     /**
@@ -32,7 +32,7 @@ export class Entorno {
         const currentV = this.valores[nombre];
         // Ver si existe y devolver el valor
         if (currentV !== undefined){
-            console.log("ENTORNO Estado actual de valores:", currentV)
+            console.log("ENTORNO valor:", currentV)
             return currentV;
         } 
         // Si no existe, revisar el padre y así en recursividad
@@ -73,7 +73,7 @@ export class Entorno {
                 ...valorAssign, // solo para mantener las propiedades anteriores
                 valor // update solo valor
             };
-            console.log("Estado actual de valores:", this.valores);
+            //console.log("Estado actual de valores:", this.valores);
             return;
         }
         // Si no existe en este entorno, buscar en el entorno padre
