@@ -75,6 +75,9 @@
 
  * @typedef {import('./nodos.js').AsignacionArregloNew} AsignacionArregloNew
 
+
+ * @typedef {import('./nodos.js').AccederArreglo} AccederArreglo
+
  */
 
 
@@ -307,6 +310,15 @@ export class BaseVisitor {
      */
     visitAsignacionArregloNew(node) {
         throw new Error('Metodo visitAsignacionArregloNew no implementado');
+    }
+    
+
+    /**
+     * @param {AccederArreglo} node
+     * @returns {any}
+     */
+    visitAccederArreglo(node) {
+        throw new Error('Metodo visitAccederArreglo no implementado');
     }
     
 }

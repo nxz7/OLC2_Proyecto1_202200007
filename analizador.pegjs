@@ -25,6 +25,7 @@
       'assign': nodos.Assign,
       'asignacionArregloNew': nodos.AsignacionArregloNew,
       'ternario': nodos.Ternario,
+      'accederArreglo':nodos.AccederArreglo,
       'brackets': nodos.Brackets,
       'declaracionVarTipo': nodos.DeclaracionVarTipo,
       'casesSwitch': nodos.CasesSwitch
@@ -229,14 +230,15 @@ tipoInt = [0-9]+ {return parseInt(text(), 10)}
 
 Prim =  floatN:tipoFloat {return crearNodo('Primitivos', { valor: floatN, tipo: "float" })}
   / intN:tipoInt {return crearNodo('Primitivos', { valor: intN, tipo: "int" })}
+  / str:String { return crearNodo('Primitivos', { valor: str, tipo: "string" }) }
+  / char:Charr { return crearNodo('Primitivos', { valor: char, tipo: "char" }) }
   /"true" {return crearNodo('Primitivos', { valor: true, tipo: "boolean" })}
   /"false" {return crearNodo('Primitivos', { valor: false, tipo: "boolean" })}
   / "(" _ exp:Expresion _ ")" { return crearNodo('agrupacion', { exp }) }
   / "[" _ exp:Expresion _ "]" { return crearNodo('agrupacion', { exp }) }
-  / id:ID { return crearNodo('refVar', { id }) }
-  / str:String { return crearNodo('Primitivos', { valor: str, tipo: "string" }) }
-  / char:Charr { return crearNodo('Primitivos', { valor: char, tipo: "char" }) }
   / "null" {return crearNodo('Primitivos', { valor: null, tipo: "null" })}
+  / id:ID exp:NestedSize { return crearNodo('accederArreglo', { id, exp }) }
+  / id:ID { return crearNodo('refVar', { id }) }
 
 
 TiposVar = "int"{ return text() } 

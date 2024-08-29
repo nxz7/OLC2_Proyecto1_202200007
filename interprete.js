@@ -1394,6 +1394,15 @@ export class InterpreterVisitor extends BaseVisitor {
         
 
 
+        checkAllPositive(array) {
+            for (let i = 0; i < array.length; i++) {
+                if (array[i] <= 0) {
+                    return null;
+                }
+            }
+            return true;
+        }
+
                 /**
          * @type {BaseVisitor['visitAsignacionArregloNew']}
          */
@@ -1401,6 +1410,16 @@ export class InterpreterVisitor extends BaseVisitor {
                     const valorArreglo = node.exp.map(ex => ex.accept(this));
                     const tipoDeclarado= node.tipoNew;
                     //console.log("AsignacionArregloNew", valorArreglo);
+
+                    if(this.checkAllPositive(valorArreglo) == null){
+                        console.log("Error el arreglo/matrix no puede ser negativoo o 0");
+                        this.errores.addError("semantico", "Error el arreglo/matrix no puede ser negativo o 0", node.location.end.line, node.location.end.column);
+                        node.valor= null;
+                        node.tipo = "error";
+                        return null;
+
+                    }
+
 
                     let arrayResult;
 
@@ -1434,6 +1453,86 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.tipo = tipoDeclarado;
                     node.valor = arrayResult;
                     return arrayResult;
+
+                }
+
+                accessArrayElement(valorArreglo, valorIndice) {
+                    try {
+                        let element = valorArreglo;
+                        
+                        for (let i = 0; i < valorIndice.length; i++) {
+                            if (!Array.isArray(element) || valorIndice[i] >= element.length || valorIndice[i] < 0) {
+                                console.log('Error: Los indices no coinciden con las dimensiones del arreglo');
+                                return null;
+                            }
+                            element = element[valorIndice[i]];
+                        }
+                        
+                        return element;
+                    } catch (error) {
+                        console.log('Error: Al momento de acceder al arreglo');
+                        return null;
+                    }
+                }
+
+
+                checkZeroMayor(array) {
+                    for (let i = 0; i < array.length; i++) {
+                        if (array[i] < 0) {  
+                            return null;
+                        }
+                    }
+                    return true;
+                }
+
+                /**
+         * @type {BaseVisitor['visitAccederArreglo']}
+         */
+                visitAccederArreglo(node){
+                    const nombreVariable = node.id;
+                    const infoVariable = this.entornoActual.getVariable(nombreVariable);
+
+                    if(infoVariable == null){
+                        console.log(`Error: Arreglo/Matriz ${nombreVariable} no definida`);
+                        this.errores.addError("semantico",`Error: Arreglo/Matriz ${nombreVariable} no definida`, node.location.end.line, node.location.end.column);
+                        node.valor = null;
+                        node.tipo = 'error';
+                        return null;
+                    }
+
+                    if(infoVariable.simbType !== "arreglo" && infoVariable.simbType !== "Matriz"){
+                        console.log(`Error: ${nombreVariable} no es un arreglo o matriz`);
+                        this.errores.addError("semantico",`Error: ${nombreVariable} no es un arreglo o matriz`, node.location.end.line, node.location.end.column);
+                        node.valor = null;
+                        node.tipo = 'error';
+                        return null;
+                    }
+
+                    const valorArreglo = infoVariable.valor;
+                    const valorIndice = node.exp.map(ex => ex.accept(this));
+                    const dimensionDeclarada = this.getArrayDimensions(valorArreglo);
+                    
+                    if(dimensionDeclarada !== valorIndice.length){
+                        console.log(`Error: ${nombreVariable} dimensiones no coinciden`);
+                        this.errores.addError("semantico",`Error: ${nombreVariable} dimensiones no coinciden`, node.location.end.line, node.location.end.column);
+                        node.valor = null;
+                        node.tipo = 'error';
+                        return null;
+                    }
+                    console.log("valorIndice", valorIndice);
+                    console.log(this.checkZeroMayor(valorIndice));
+                    if(this.checkZeroMayor(valorIndice) == null){
+                        console.log("Error no se puede acceder a una posicion negativa");
+                        this.errores.addError("semantico", "Error no se puede acceder a una posicion negativa", node.location.end.line, node.location.end.column);
+                        node.valor= null;
+                        node.tipo = "error";
+                        return null;
+                    }
+
+                    const ValorAccedido= this.accessArrayElement(valorArreglo, valorIndice);
+                    node.valor = ValorAccedido;
+                    node.tipo = infoVariable.tipo;
+                    return ValorAccedido;
 
                 }
 }
