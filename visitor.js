@@ -78,6 +78,9 @@
 
  * @typedef {import('./nodos.js').AccederArreglo} AccederArreglo
 
+
+ * @typedef {import('./nodos.js').AssignIndiceArreglo} AssignIndiceArreglo
+
  */
 
 
@@ -319,6 +322,15 @@ export class BaseVisitor {
      */
     visitAccederArreglo(node) {
         throw new Error('Metodo visitAccederArreglo no implementado');
+    }
+    
+
+    /**
+     * @param {AssignIndiceArreglo} node
+     * @returns {any}
+     */
+    visitAssignIndiceArreglo(node) {
+        throw new Error('Metodo visitAssignIndiceArreglo no implementado');
     }
     
 }

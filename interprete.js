@@ -1036,6 +1036,13 @@ export class InterpreterVisitor extends BaseVisitor {
             }
 
             case '+=':
+
+                if(node.assign.tipo != "int" && node.assign.tipo != "float" && node.assign.tipo != "string"){
+                    console.log("Error de tipos (+=) solo trabaja con string/float/int");
+                    this.errores.addError("semantico","Error de tipos (+=) solo trabaja con string/float/int", node.location.end.line, node.location.end.column);
+                    return null;
+                }
+
                 if(node.assign.tipo == infoVariable.tipo){
                     const valor = node.assign.accept(this);
                     const addVariable = infoVariable.valor + valor;
@@ -1061,6 +1068,13 @@ export class InterpreterVisitor extends BaseVisitor {
                 }
 
             case '-=':
+            
+                if(node.assign.tipo != "int" && node.assign.tipo != "float"){
+                    console.log("Error de tipos (-=) solo trabaja con float/int");
+                    this.errores.addError("semantico","Error de tipos (-=) solo trabaja con float/int", node.location.end.line, node.location.end.column);
+                    return null;
+                }
+
                 if(node.assign.tipo == infoVariable.tipo){
                     const valor = node.assign.accept(this);
                     const addVariable = infoVariable.valor - valor;
@@ -1534,5 +1548,176 @@ export class InterpreterVisitor extends BaseVisitor {
                     node.tipo = infoVariable.tipo;
                     return ValorAccedido;
 
+                }
+
+
+                modifyArrayElement(valorArreglo, valorIndice, valorNuevo) {
+                    try {
+                        let element = valorArreglo;
+                        
+                        for (let i = 0; i < valorIndice.length - 1; i++) {
+                            if (!Array.isArray(element) || valorIndice[i] >= element.length || valorIndice[i] < 0) {
+                                console.log('Error: Los índices no coinciden con las dimensiones del arreglo.');
+                                return null;
+                            }
+                            element = element[valorIndice[i]];
+                        }
+                        
+                        const lastIn = valorIndice[valorIndice.length - 1];
+                        if (!Array.isArray(element) || lastIn >= element.length || lastIn < 0) {
+                            console.log('Error: El índice final no coincide con las dimensiones del arreglo.');
+                            return null;
+                        }
+                        
+                        element[lastIn] = valorNuevo;  
+                        
+                        return valorArreglo;
+                    } catch (error) {
+                        console.log('Error: Al momento de modificar el arreglo.');
+                        return null;
+                    }
+                }
+
+                SumArrayElement(valorArreglo, valorIndice, valorNuevo) {
+                    try {
+                        let element = valorArreglo;
+                        
+                        for (let i = 0; i < valorIndice.length - 1; i++) {
+                            if (!Array.isArray(element) || valorIndice[i] >= element.length || valorIndice[i] < 0) {
+                                console.log('Error: Los índices no coinciden con las dimensiones del arreglo.');
+                                return null;
+                            }
+                            element = element[valorIndice[i]];
+                        }
+                        
+                        const lastIn = valorIndice[valorIndice.length - 1];
+                        if (!Array.isArray(element) || lastIn >= element.length || lastIn < 0) {
+                            console.log('Error: El índice final no coincide con las dimensiones del arreglo.');
+                            return null;
+                        }
+                        
+                        element[lastIn] += valorNuevo;  
+                        
+                        return valorArreglo;
+                    } catch (error) {
+                        console.log('Error: Al momento de modificar el arreglo.');
+                        return null;
+                    }
+                }
+
+                SubArrayElement(valorArreglo, valorIndice, valorNuevo) {
+                    try {
+                        let element = valorArreglo;
+                        
+                        for (let i = 0; i < valorIndice.length - 1; i++) {
+                            if (!Array.isArray(element) || valorIndice[i] >= element.length || valorIndice[i] < 0) {
+                                console.log('Error: Los índices no coinciden con las dimensiones del arreglo.');
+                                return null;
+                            }
+                            element = element[valorIndice[i]];
+                        }
+                        
+                        const lastIn = valorIndice[valorIndice.length - 1];
+                        if (!Array.isArray(element) || lastIn >= element.length || lastIn < 0) {
+                            console.log('Error: El índice final no coincide con las dimensiones del arreglo.');
+                            return null;
+                        }
+                        
+                        element[lastIn] -= valorNuevo;  
+                        
+                        return valorArreglo;
+                    } catch (error) {
+                        console.log('Error: Al momento de modificar el arreglo.');
+                        return null;
+                    }
+                }
+        /**
+         * @type {BaseVisitor['visitAssignIndiceArreglo']}
+         */
+                visitAssignIndiceArreglo(node) {
+                    const nombreVariable = node.id;
+                    const infoVariable = this.entornoActual.getVariable(nombreVariable);
+                    let NuevoArreglo;
+                    if(infoVariable == null){
+                        console.log(`Error: Arreglo/Matriz ${nombreVariable} no definida`);
+                        this.errores.addError("semantico",`Error: Arreglo/Matriz ${nombreVariable} no definida`, node.location.end.line, node.location.end.column);
+                        node.valor = null;
+                        node.tipo = 'error';
+                        return null;
+                    }
+
+                    if(infoVariable.simbType !== "arreglo" && infoVariable.simbType !== "Matriz"){
+                        console.log(`Error: ${nombreVariable} no es un arreglo o matriz`);
+                        this.errores.addError("semantico",`Error: ${nombreVariable} no es un arreglo o matriz`, node.location.end.line, node.location.end.column);
+                        node.valor = null;
+                        node.tipo = 'error';
+                        return null;
+                    }
+
+                    const valorArreglo = infoVariable.valor;
+                    const valorIndice = node.exp.map(ex => ex.accept(this));
+                    const dimensionDeclarada = this.getArrayDimensions(valorArreglo);
+                    let valorNuevo = node.assign.accept(this);
+
+                    if(infoVariable.tipo !== node.assign.tipo){
+                        if(infoVariable.tipo == "float" && node.assign.tipo == "int"){
+                            node.assign.tipo = "float";
+                            node.assign.valor = valorNuevo*1.0;
+                            valorNuevo = valorNuevo*1.0;
+                            console.log("VERR", node.assign);
+                            //return;
+                        }else{
+                            console.log(`Error: Error de tipos en la asignación`);
+                            this.errores.addError("semantico",`Error: Error de tipos en la asignación`, node.location.end.line, node.location.end.column);
+                            node.valor = null;
+                            node.tipo = 'error';
+                            return null;
+                        }
+                        
+                    }
+
+                    switch(node.op){
+
+                        case "=":
+                            NuevoArreglo = this.modifyArrayElement(valorArreglo, valorIndice, valorNuevo);
+                            this.entornoActual.updateVariable(node.id, NuevoArreglo);
+                            this.symbols.updateVariable(node.id, NuevoArreglo);
+                            node.valor = NuevoArreglo;
+                            node.tipo = infoVariable.tipo;
+                            return NuevoArreglo;
+
+                        case "+=":
+
+                            if(node.assign.tipo !== "int" && node.assign.tipo !== "float" && node.assign.tipo !== "string"){
+                                console.log(`Error: Error de tipos en la asignación`);
+                                this.errores.addError("semantico",`Error: Error de tipos en la asignación`, node.location.end.line, node.location.end.column);
+                                node.valor = null;
+                                node.tipo = 'error';
+                                return null;
+                            }
+                            NuevoArreglo = this.SumArrayElement(valorArreglo, valorIndice, valorNuevo);
+                            this.entornoActual.updateVariable(node.id, NuevoArreglo);
+                            this.symbols.updateVariable(node.id, NuevoArreglo);
+                            node.valor = NuevoArreglo;
+                            node.tipo = infoVariable.tipo;
+                            return NuevoArreglo;
+
+                        case "-=":
+                            console.log("[] -=", node);
+                            if(node.assign.tipo !== "int" && node.assign.tipo !== "float"){
+                                console.log(`Error: Error de tipos en la asignación`);
+                                this.errores.addError("semantico",`Error: Error de tipos en la asignación`, node.location.end.line, node.location.end.column);
+                                node.valor = null;
+                                node.tipo = 'error';
+                                return null;
+                            }
+
+                            NuevoArreglo = this.SubArrayElement(valorArreglo, valorIndice, valorNuevo);
+                            this.entornoActual.updateVariable(node.id, NuevoArreglo);
+                            this.symbols.updateVariable(node.id, NuevoArreglo);
+                            node.valor = NuevoArreglo;
+                            node.tipo = infoVariable.tipo;
+                            return NuevoArreglo;
+                }
                 }
 }

@@ -886,4 +886,53 @@ export class AccederArreglo extends Expresion {
     }
 }
     
-export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Switch, CasesSwitch, For, Break, Continue, Return, Ternario, Brackets, Call, Typeof, DeclaracionArreglo, AsignacionArregloNew, AccederArreglo }
+export class AssignIndiceArreglo extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {string} options.id nombre de lo que se va a asignar
+ * @param {Expresion[]} options.exp valores de acceso
+ * @param {Expresion} options.assign lo que se le va a asignar al ID
+ * @param {string} options.op mira si es = / +=/-=
+    */
+    constructor({ id, exp, assign, op }) {
+        super();
+        
+        /**
+         * nombre de lo que se va a asignar
+         * @type {string}
+        */
+        this.id = id;
+
+
+        /**
+         * valores de acceso
+         * @type {Expresion[]}
+        */
+        this.exp = exp;
+
+
+        /**
+         * lo que se le va a asignar al ID
+         * @type {Expresion}
+        */
+        this.assign = assign;
+
+
+        /**
+         * mira si es = / +=/-=
+         * @type {string}
+        */
+        this.op = op;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitAssignIndiceArreglo(this);
+    }
+}
+    
+export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Switch, CasesSwitch, For, Break, Continue, Return, Ternario, Brackets, Call, Typeof, DeclaracionArreglo, AsignacionArregloNew, AccederArreglo, AssignIndiceArreglo }

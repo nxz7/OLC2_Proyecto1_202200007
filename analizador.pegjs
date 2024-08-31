@@ -24,6 +24,7 @@
       'typeof': nodos.Typeof,
       'assign': nodos.Assign,
       'asignacionArregloNew': nodos.AsignacionArregloNew,
+      'assignIndiceArreglo': nodos.AssignIndiceArreglo,
       'ternario': nodos.Ternario,
       'accederArreglo':nodos.AccederArreglo,
       'brackets': nodos.Brackets,
@@ -116,8 +117,9 @@ IntTernario = "?" { return text() }
 
 Expresion = Assign
 
-Assign = id:ID _ op:("="/"+="/"-=") _ assign:AsignarNewValue { return crearNodo('assign', { id, assign, op}) }
-          / Ternario
+Assign = id:ID  exp:NestedSize _ op:("="/"+="/"-=") _ assign:Expresion { return crearNodo('assignIndiceArreglo', { id, exp, assign, op}) }
+        /id:ID _ op:("="/"+="/"-=") _ assign:AsignarNewValue { return crearNodo('assign', { id, assign, op}) }
+        / Ternario
 
 AsignarNewValue =  "{" _ elements:NestedArrayElements _ "}" {return elements;}
                 /"new" _ tipoNew:TiposVar exp:NestedSize { return crearNodo('asignacionArregloNew', { tipoNew, exp, dimNew:exp.length }) }
@@ -216,8 +218,8 @@ Call = callee:TypeOF _ params:("(" argumentos:Argz? ")" { return argumentos })* 
   )
 }
 
-TypeOF = "typeof"  _ argumentos:Expresion _  {return crearNodo('typeof', {  argumentos: argumentos || [] })}
-/ Prim
+TypeOF = "typeof"  _ argumentos:Prim _  {return crearNodo('typeof', {  argumentos: argumentos || [] })}
+        / Prim
 
 
 Argz = argum:Expresion _ argumentos:("," _ exp:Expresion { return exp })* { return [argum, ...argumentos] }
