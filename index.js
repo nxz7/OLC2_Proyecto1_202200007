@@ -10,7 +10,6 @@ const salida = document.getElementById('salida');
 
 
 
-
 btn.addEventListener('click', () => {
     const EntradaFront = editor.value
     const errores = new ErroresTabla();
@@ -33,7 +32,7 @@ btn.addEventListener('click', () => {
     } catch (error) {
         console.log(error)
         // agregar el errores
-        errores.addError("Semantico",error.message, error.location.start.line, error.location.start.column)
+        errores.addError("sintactico",error.message, error.location.start.line, error.location.start.column)
         salida.innerHTML =' Error sintactico: ' + error.message + ' [ linea: ' + error.location.start.line + ' - columna: ' + error.location.start.column + ' ]';
     }
 

@@ -935,4 +935,61 @@ export class AssignIndiceArreglo extends Expresion {
     }
 }
     
-export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Switch, CasesSwitch, For, Break, Continue, Return, Ternario, Brackets, Call, Typeof, DeclaracionArreglo, AsignacionArregloNew, AccederArreglo, AssignIndiceArreglo }
+export class DeclaracionFunction extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {string} options.id Identificador de la funcion
+ * @param {string[]} options.Parameters lo que se va a enviar a la funcion
+ * @param {brackets} options.brackets brackets - declara toda la info de la funcion
+ * @param {string} options.tipoFunc tipo de funcion y si va a regresar algo
+ * @param {number} options.res Para ver si debe devolver un array
+    */
+    constructor({ id, Parameters, brackets, tipoFunc, res }) {
+        super();
+        
+        /**
+         * Identificador de la funcion
+         * @type {string}
+        */
+        this.id = id;
+
+
+        /**
+         * lo que se va a enviar a la funcion
+         * @type {string[]}
+        */
+        this.Parameters = Parameters;
+
+
+        /**
+         * brackets - declara toda la info de la funcion
+         * @type {brackets}
+        */
+        this.brackets = brackets;
+
+
+        /**
+         * tipo de funcion y si va a regresar algo
+         * @type {string}
+        */
+        this.tipoFunc = tipoFunc;
+
+
+        /**
+         * Para ver si debe devolver un array
+         * @type {number}
+        */
+        this.res = res;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitDeclaracionFunction(this);
+    }
+}
+    
+export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Switch, CasesSwitch, For, Break, Continue, Return, Ternario, Brackets, Call, Typeof, DeclaracionArreglo, AsignacionArregloNew, AccederArreglo, AssignIndiceArreglo, DeclaracionFunction }

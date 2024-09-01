@@ -1,10 +1,12 @@
 import { Entorno } from "./entorno.js";
 import { CasesSwitch } from "./nodos.js";
 import { BaseVisitor } from "./visitor.js";
+import { AlienFunc } from "./AlienFunc.js";
 import nodos, { Expresion } from './nodos.js'
 import { BreakException, ContinueException, ReturnException } from "./stcTranz.js";
 import { Invoke } from "./invoke.js";
 import { native } from "./nativeFunc.js";
+//import { AlienFunc } from "./AlienFunc.js";
 // SE COPIA DEL VISITOR.JS PARA REALIZAR LA IMPLEMENTACION 
 
 export class InterpreterVisitor extends BaseVisitor {
@@ -481,7 +483,7 @@ export class InterpreterVisitor extends BaseVisitor {
         if (this.reservedWords.includes(nombreVariable)) {
             console.log(`Error: '${nombreVariable}' es una palabra reservada y no puede ser usada como nombre de variable.`);
             this.errores.addError("semantico", `Error: '${nombreVariable}'es una palabra reservada y no puede ser usada como nombre de variable.`, node.location.end.line, node.location.end.column);
-            return;
+            return null;
         }
 
         const valorVariable = node.exp.accept(this);
@@ -492,7 +494,7 @@ export class InterpreterVisitor extends BaseVisitor {
         if(infoVariable != null){
             console.log("Error: Variable ya declarada en el entorno actual");
             this.errores.addError("semantico",`Error: Variable ${nombreVariable} ya declarada en el entorno actual`, node.location.end.line, node.location.end.column);
-            return ;
+            return null;
 
         }else{
 
@@ -514,14 +516,14 @@ export class InterpreterVisitor extends BaseVisitor {
     if (this.reservedWords.includes(nombreVariable)) {
         console.log(`Error: '${nombreVariable}' es una palabra reservada y no puede ser usada como nombre de variable.`);
         this.errores.addError("semantico", `Error: '${nombreVariable}'es una palabra reservada y no puede ser usada como nombre de variable.`, node.location.end.line, node.location.end.column);
-        return;
+        return null;
     }
 
     const infoVariable = this.entornoActual.getBracketVar(nombreVariable);
         if(infoVariable != null){
             console.log("Error: Variable ya declarada");
             this.errores.addError("semantico",`Error: Variable ${nombreVariable} ya declarada en el entorno actual`, node.location.end.line, node.location.end.column);
-            return ;
+            return null;
 
         }else{
 
@@ -569,10 +571,10 @@ export class InterpreterVisitor extends BaseVisitor {
 
         const nombreVariable = node.id;
         const infoVariable = this.entornoActual.getVariable(nombreVariable);
-        //console.log("!!!1 return de la variable", this.entornoActual.getVariable(nombreVariable));
-        //console.log("!!!2 return de la variable", infoVariable);
+        //console.log("RefVar---INICIO", node.valor, node.tipo);
+
         if(infoVariable != null){ 
-        //console.log("RefVar!!!" , infoVariable.valor, infoVariable.tipo);
+
         node.valor = infoVariable.valor;
         node.tipo = infoVariable.tipo;
         //console.log("RefVar---FINAL", node);
@@ -659,6 +661,7 @@ export class InterpreterVisitor extends BaseVisitor {
         if (error instanceof ContinueException) {
             return this.visitWhile(node);
         }
+
 /*            console.log('Error  while:', error);
             this.errores.addError("semantico",`Error dentro de While`, node.location.end.line, node.location.end.column);
 */ 
@@ -729,12 +732,25 @@ export class InterpreterVisitor extends BaseVisitor {
          */
         visitReturn(node) {
             let rtnValue = null
+            let rtnTipo = null
             if (node.exp) {
-                node.valor = node.exp.accept(this);
+
+                if(Array.isArray(node.exp)){
+                    rtnValue = node.exp.map(ex => ex.accept(this));
+                    const pruebaTipo = this.processMatrixTipo(node.exp);
+                    rtnTipo = this.checkAllSame(pruebaTipo);
+                    node.valor = rtnValue;
+                    node.tipo = node.exp.tipo;
+                }else{
+                    node.valor = node.exp.accept(this);
                 node.tipo = node.exp.tipo
                 rtnValue = node.exp.accept(this);
+                rtnTipo = node.exp.tipo;
+                }
+                
             }
-            throw new ReturnException(rtnValue);
+            console.log("ReturniNTER", node);
+            throw new ReturnException(rtnValue, rtnTipo);
         }
 
  //----------------------switch---------------------------------------
@@ -790,6 +806,9 @@ export class InterpreterVisitor extends BaseVisitor {
                 this.errores.addError("semantico",`continue dentro de un switch`, node.location.end.line, node.location.end.column);
                 
             }
+
+
+
             throw error;
 
             }
@@ -1036,7 +1055,7 @@ export class InterpreterVisitor extends BaseVisitor {
             }
 
             case '+=':
-
+                node.assign.accept(this)
                 if(node.assign.tipo != "int" && node.assign.tipo != "float" && node.assign.tipo != "string"){
                     console.log("Error de tipos (+=) solo trabaja con string/float/int");
                     this.errores.addError("semantico","Error de tipos (+=) solo trabaja con string/float/int", node.location.end.line, node.location.end.column);
@@ -1068,7 +1087,7 @@ export class InterpreterVisitor extends BaseVisitor {
                 }
 
             case '-=':
-            
+                node.assign.accept(this)
                 if(node.assign.tipo != "int" && node.assign.tipo != "float"){
                     console.log("Error de tipos (-=) solo trabaja con float/int");
                     this.errores.addError("semantico","Error de tipos (-=) solo trabaja con float/int", node.location.end.line, node.location.end.column);
@@ -1102,94 +1121,6 @@ export class InterpreterVisitor extends BaseVisitor {
     }
     }
 
-
-        /**
-    * @type {BaseVisitor['visitCall']}
-    */
-        visitCall(node) {
-            const funcion = node.callee.accept(this);
-    
-            const argzVar = node.argumentos.map(arg => arg.accept(this));
-
-
-    
-            if (!(funcion instanceof Invoke)) {
-                console.log("Error, la funcion no es invocable");
-                this.errores.addError("semantico","la funcion no es invocable", node.location.end.line, node.location.end.column);
-
-            }
-
-            if (funcion.argz() !== argzVar.length) {
-                console.log("Error, los parametros encontrados no coinciden con los argumentos de la funcion");
-                this.errores.addError("semantico","los parametros encontrados no coinciden con los argumentos de la funcion", node.location.end.line, node.location.end.column);
-
-            }
-    
-            
-            switch(node.callee.id){
-                
-                    case "parseInt":
-                        if (node.argumentos[0].tipo == "string" && !isNaN(funcion.invoking(this, argzVar)) ){
-                            node.valor = funcion.invoking(this, argzVar);
-                            node.tipo = "int";
-                            
-                            return node.valor;
-                        }else {
-                            console.log("Error de tipado en parseInt");
-                            this.errores.addError("semantico","Error de tipado en parseInt", node.location.end.line, node.location.end.column);
-                            return null;
-                        }
-
-                    case "parsefloat":
-                        if (node.argumentos[0].tipo == "string" && !isNaN(funcion.invoking(this, argzVar)) ){
-                            node.valor = funcion.invoking(this, argzVar);
-                            node.tipo = "float";
-                            return node.valor;
-                        }else {
-                            console.log("Error de tipado en parsefloat");
-                            this.errores.addError("semantico","Error de tipado en parsefloat", node.location.end.line, node.location.end.column);
-                            return null;
-                        }
-
-                    case "toString":
-                        if ((node.argumentos[0].tipo == "float"||node.argumentos[0].tipo == "int" ||node.argumentos[0].tipo == "boolean")){
-                            node.valor = funcion.invoking(this, argzVar);
-                            node.tipo = "string";
-                            return node.valor;
-                        }else {
-                            console.log("Error de tipado en toString");
-                            this.errores.addError("semantico","Error de tipado en toString", node.location.end.line, node.location.end.column);
-                            return null;
-                        }
-
-                    case "toLowerCase":
-                        if (node.argumentos[0].tipo == "string"  ){
-                            node.valor = funcion.invoking(this, argzVar);
-                            node.tipo = "string";
-                            return node.valor;
-                        }else {
-                            console.log("Error de tipado en toLowerCase");
-                            this.errores.addError("semantico","Error de tipado en toLowerCase", node.location.end.line, node.location.end.column);
-                            return null;
-                        }
-
-                    case "toUpperCase":
-                        if (node.argumentos[0].tipo == "string" ){
-                            node.valor = funcion.invoking(this, argzVar);
-                            node.tipo = "string";
-                            return node.valor;
-                        }else {
-                            console.log("Error de tipado en toUpperCase");
-                            this.errores.addError("semantico","Error de tipado en toUpperCase", node.location.end.line, node.location.end.column);
-                            return null;
-                        }
-
-            }
-
-            console.log("Error llamada a funcion");
-            this.errores.addError("semantico","Error llamada a funcion", node.location.end.line, node.location.end.column);
-            return null;
-        }
 
                 /**
     * @type {BaseVisitor['visitTypeof']}
@@ -1719,5 +1650,133 @@ export class InterpreterVisitor extends BaseVisitor {
                             node.tipo = infoVariable.tipo;
                             return NuevoArreglo;
                 }
+                }
+
+//----------------------------------------FUNCIONES
+
+
+        /**
+    * @type {BaseVisitor['visitCall']}
+    */
+        visitCall(node) {
+            const funcion = node.callee.accept(this);
+            
+            const argzVar = node.argumentos.map(arg => arg.accept(this));
+
+            console.log("VISITCALL", node);
+    
+            if (!(funcion instanceof Invoke)) {
+                console.log("Error, la funcion no es invocable");
+                this.errores.addError("semantico","la funcion no es invocable", node.location.end.line, node.location.end.column);
+
+            }
+
+            if (funcion.argz() !== argzVar.length) {
+                console.log("Error, los parametros encontrados no coinciden con los argumentos de la funcion");
+                this.errores.addError("semantico","los parametros encontrados no coinciden con los argumentos de la funcion", node.location.end.line, node.location.end.column);
+
+            }
+            //----------------
+            //node.valor = funcion.invoking(this, argzVar);
+
+            
+            switch(node.callee.id){
+                
+                    case "parseInt":
+                        if (node.argumentos[0].tipo == "string" && !isNaN(funcion.invoking(this, argzVar)) ){
+                            node.valor = funcion.invoking(this, argzVar);
+                            node.tipo = "int";
+                            
+                            return node.valor;
+                        }else {
+                            console.log("Error de tipado en parseInt");
+                            this.errores.addError("semantico","Error de tipado en parseInt", node.location.end.line, node.location.end.column);
+                            return null;
+                        }
+
+                    case "parsefloat":
+                        if (node.argumentos[0].tipo == "string" && !isNaN(funcion.invoking(this, argzVar)) ){
+                            node.valor = funcion.invoking(this, argzVar);
+                            node.tipo = "float";
+                            return node.valor;
+                        }else {
+                            console.log("Error de tipado en parsefloat");
+                            this.errores.addError("semantico","Error de tipado en parsefloat", node.location.end.line, node.location.end.column);
+                            return null;
+                        }
+
+                    case "toString":
+                        if ((node.argumentos[0].tipo == "float"||node.argumentos[0].tipo == "int" ||node.argumentos[0].tipo == "boolean")){
+                            node.valor = funcion.invoking(this, argzVar);
+                            node.tipo = "string";
+                            return node.valor;
+                        }else {
+                            console.log("Error de tipado en toString");
+                            this.errores.addError("semantico","Error de tipado en toString", node.location.end.line, node.location.end.column);
+                            return null;
+                        }
+
+                    case "toLowerCase":
+                        if (node.argumentos[0].tipo == "string"  ){
+                            node.valor = funcion.invoking(this, argzVar);
+                            node.tipo = "string";
+                            return node.valor;
+                        }else {
+                            console.log("Error de tipado en toLowerCase");
+                            this.errores.addError("semantico","Error de tipado en toLowerCase", node.location.end.line, node.location.end.column);
+                            return null;
+                        }
+
+                    case "toUpperCase":
+                        if (node.argumentos[0].tipo == "string" ){
+                            node.valor = funcion.invoking(this, argzVar);
+                            node.tipo = "string";
+                            return node.valor;
+                        }else {
+                            console.log("Error de tipado en toUpperCase");
+                            this.errores.addError("semantico","Error de tipado en toUpperCase", node.location.end.line, node.location.end.column);
+                            return null;
+                        }
+                    default:
+                        const resultado = funcion.invoking(this, node.argumentos);
+                        console.log("RESULTADO", resultado);
+                        if(resultado == null){
+                            node.valor = null;
+                            node.tipo = null;
+                            return null;
+                        }
+                        node.valor = resultado.valor;
+                        node.tipo = resultado.tipo;
+                        return node.valor;
+
+            }
+
+            //pruebaaaaaaaaaaaaaaaa
+
+
+            //pruebaaaaaaaaaaaaaaaaaaaaaaaa
+/*
+            console.log("Error llamada a funcion");
+            this.errores.addError("semantico","Error llamada a funcion", node.location.end.line, node.location.end.column);
+            return null;*/
+        }
+
+
+                /**
+                 * @type {BaseVisitor['visitDeclaracionFunction']} 
+                 */
+                visitDeclaracionFunction(node) {
+                    const AlienInfo = new AlienFunc(node, this.entornoActual, this.symbols,this.errores);
+                    console.log("DeclaracionFunction", node);
+                    const nombreVariable = node.id;
+
+                    if (this.reservedWords.includes(nombreVariable)) {
+                        console.log(`Error: '${nombreVariable}' es una palabra reservada y no puede ser usada como nombre de funcion.`);
+                        this.errores.addError("semantico", `Error: '${nombreVariable}'es una palabra reservada y no puede ser usada como nombre de funcion.`, node.location.end.line, node.location.end.column);
+                        return null;
+                    }
+
+                    this.entornoActual.addVariable(node.id, AlienInfo, node.tipoFunc, "funcion", node.location.end.line, node.location.end.column);
+                    this.symbols.addVariable(node.id, AlienInfo.node.valor, node.tipoFunc, "funcion", node.location.end.line, node.location.end.column);
                 }
 }

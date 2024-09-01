@@ -14,8 +14,9 @@ export class ReturnException extends Error {
     /**
      * @param {any} rtnValue
      */
-    constructor(rtnValue) {
+    constructor(rtnValue, rtnTipo) {
         super('Return');
         this.rtnValue = rtnValue;
+        this.rtnTipo = rtnTipo;
     }
 }

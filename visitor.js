@@ -81,6 +81,9 @@
 
  * @typedef {import('./nodos.js').AssignIndiceArreglo} AssignIndiceArreglo
 
+
+ * @typedef {import('./nodos.js').DeclaracionFunction} DeclaracionFunction
+
  */
 
 
@@ -331,6 +334,15 @@ export class BaseVisitor {
      */
     visitAssignIndiceArreglo(node) {
         throw new Error('Metodo visitAssignIndiceArreglo no implementado');
+    }
+    
+
+    /**
+     * @param {DeclaracionFunction} node
+     * @returns {any}
+     */
+    visitDeclaracionFunction(node) {
+        throw new Error('Metodo visitDeclaracionFunction no implementado');
     }
     
 }

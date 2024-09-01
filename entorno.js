@@ -37,6 +37,7 @@ export class Entorno {
         } 
         // Si no existe, revisar el padre y así en recursividad
         if (!currentV && this.padre) {
+            console.log(` ${nombre} ---buscando`);
             return this.padre.getVariable(nombre);
         }
 

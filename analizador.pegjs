@@ -29,7 +29,8 @@
       'accederArreglo':nodos.AccederArreglo,
       'brackets': nodos.Brackets,
       'declaracionVarTipo': nodos.DeclaracionVarTipo,
-      'casesSwitch': nodos.CasesSwitch
+      'casesSwitch': nodos.CasesSwitch,
+      'declaracionFunction': nodos.DeclaracionFunction
     }
 
     const nodo = new tipos[tipoNodo](props)
@@ -41,8 +42,14 @@
 programa = _ decl:Declaracion* _ { return decl }
 
 //>MAIN
-Declaracion = decl:DecVariable _ { return decl }
+Declaracion = decl:DecFunction _ { return decl }
+            / decl:DecVariable _ { return decl }
             / statement:Statement _ { return statement }
+
+
+DecFunction = tipoFunc:"void" _ id:ID _ "(" _ Parameters:Parametros? _ ")" _ brackets:Brackets { return crearNodo('declaracionFunction', { tipoFunc, id, Parameters: Parameters || [], brackets,res: null }) }
+        /tipoFunc:TiposVar res:Corchetes* _ id:ID _ "(" _ Parameters:Parametros? _ ")" _ brackets:Brackets { return crearNodo('declaracionFunction', { tipoFunc, id, Parameters: Parameters || [], brackets, res: res.length ||null  }) }
+
 
 //---------------declaracion de variables, clases y funciones
 DecVariable = "var" _ id:ID _ "=" _ exp:Expresion _ ";" { return crearNodo('declaracionVar', { id, exp}) }
@@ -77,7 +84,7 @@ NestedArrayElements = head:(Expresion / MainArrayElements) tail:(_ "," _ (Expres
 
 //----------------aca van los print, if else y todo tipo de statements ---------------
 Statement = "System.out.println(" _ Listaexp:ListaExpresiones* _ ")" _ ";" { return crearNodo('print', { Listaexp }) }
-    / "{" _ decl:Declaracion* _ "}" { return crearNodo('brackets', { declaraciones:decl }) }
+    / Brackets:Brackets{ return Brackets }
     / "while" _ "(" _ condition:Expresion _ ")" _ whileBracket:Statement { return crearNodo('while', { condition, whileBracket }) }
     / "if" _ "(" _ condition:Expresion _ ")" _ trueBracket:Statement
       falseBracket:(
@@ -88,9 +95,20 @@ Statement = "System.out.println(" _ Listaexp:ListaExpresiones* _ ")" _ ";" { ret
     / "switch" _ "(" _ exp:Expresion _ ")" _ "{" _ cases:Case* _ Default:DefaultCase? _ "}" { return crearNodo('switch', { exp, cases, Default }) }
     / "break" _ ";" { return crearNodo('break') }
     / "continue" _ ";" { return crearNodo('continue') }
-    / "return" _ exp:Expresion? _ ";" { return crearNodo('return', { exp }) }
+    / "return" _ exp:ReturnElements? _ ";" { return crearNodo('return', { exp }) }
     / exp:Expresion _ ";" { return crearNodo('expresionStatement', { exp }) }
 
+//SEPARARA PARA BRACKETS
+Brackets="{" _ decl:Declaracion* _ "}" { return crearNodo('brackets', { declaraciones:decl }) }
+
+
+
+
+
+//-----------------PARAMETROS DE FUNCIONES-------------------
+
+Parametros = first:Parametro _ rest:("," _ param:Parametro { return param })* { return [first, ...rest] }
+Parametro = tipo:TiposVar _ id:ID { return { tipo: tipo, id: id } }
 // SEPARAR PRIMERA CONDICION DE FOR
 
 ListaExpresiones = "," _ exp:Expresion _ { return exp }
@@ -218,11 +236,16 @@ Call = callee:TypeOF _ params:("(" argumentos:Argz? ")" { return argumentos })* 
   )
 }
 
-TypeOF = "typeof"  _ argumentos:Prim _  {return crearNodo('typeof', {  argumentos: argumentos || [] })}
+TypeOF = "typeof"  _ argumentos:TypeOF _  {return crearNodo('typeof', {  argumentos: argumentos || [] })}
         / Prim
 
 
-Argz = argum:Expresion _ argumentos:("," _ exp:Expresion { return exp })* { return [argum, ...argumentos] }
+Argz = argum:ReturnElements _ argumentos:("," _ exp:ReturnElements { return exp })* { return [argum, ...argumentos] }
+
+ReturnElements = "{" _ elements:NestedArrayElements _ "}" {return elements;}
+                /"new" _ tipoNew:TiposVar exp:NestedSize { return crearNodo('asignacionArregloNew', { tipoNew, exp, dimNew:exp.length }) }
+                /  exp:Expresion  { return exp }
+
 
 
 
@@ -248,6 +271,7 @@ TiposVar = "int"{ return text() }
 / "boolean" { return text() }
 / "char" { return text() }
 / "string" { return text() }
+
 
 
 // en cualquier lugar puede haber un espacio -> en cualquier lugar puede haber un comentario
