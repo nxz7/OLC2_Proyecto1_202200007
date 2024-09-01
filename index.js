@@ -9,7 +9,6 @@ const btn = document.getElementById('btn');
 const salida = document.getElementById('salida');
 
 
-
 btn.addEventListener('click', () => {
     const EntradaFront = editor.value
     const errores = new ErroresTabla();

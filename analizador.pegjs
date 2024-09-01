@@ -27,6 +27,7 @@
       'assignIndiceArreglo': nodos.AssignIndiceArreglo,
       'ternario': nodos.Ternario,
       'accederArreglo':nodos.AccederArreglo,
+      'funcionesArreglo': nodos.FuncionesArreglo,
       'brackets': nodos.Brackets,
       'declaracionVarTipo': nodos.DeclaracionVarTipo,
       'casesSwitch': nodos.CasesSwitch,
@@ -262,6 +263,7 @@ Prim =  floatN:tipoFloat {return crearNodo('Primitivos', { valor: floatN, tipo: 
   / "(" _ exp:Expresion _ ")" { return crearNodo('agrupacion', { exp }) }
   / "[" _ exp:Expresion _ "]" { return crearNodo('agrupacion', { exp }) }
   / "null" {return crearNodo('Primitivos', { valor: null, tipo: "null" })}
+  /id:ID "."funcion:("length"/"join"/"indexOf") exp:("(" exp: Argz? ")"{ return exp })? { return crearNodo('funcionesArreglo', { id, funcion, exp: exp ||null }) }
   / id:ID exp:NestedSize { return crearNodo('accederArreglo', { id, exp }) }
   / id:ID { return crearNodo('refVar', { id }) }
 

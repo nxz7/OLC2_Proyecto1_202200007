@@ -992,4 +992,45 @@ export class DeclaracionFunction extends Expresion {
     }
 }
     
-export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Switch, CasesSwitch, For, Break, Continue, Return, Ternario, Brackets, Call, Typeof, DeclaracionArreglo, AsignacionArregloNew, AccederArreglo, AssignIndiceArreglo, DeclaracionFunction }
+export class FuncionesArreglo extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {string} options.id ID PARA BUSCAR LA VARIABLE
+ * @param {Expresion[]} options.exp valores de acceso
+ * @param {string} options.funcion valores de acceso
+    */
+    constructor({ id, exp, funcion }) {
+        super();
+        
+        /**
+         * ID PARA BUSCAR LA VARIABLE
+         * @type {string}
+        */
+        this.id = id;
+
+
+        /**
+         * valores de acceso
+         * @type {Expresion[]}
+        */
+        this.exp = exp;
+
+
+        /**
+         * valores de acceso
+         * @type {string}
+        */
+        this.funcion = funcion;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitFuncionesArreglo(this);
+    }
+}
+    
+export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Switch, CasesSwitch, For, Break, Continue, Return, Ternario, Brackets, Call, Typeof, DeclaracionArreglo, AsignacionArregloNew, AccederArreglo, AssignIndiceArreglo, DeclaracionFunction, FuncionesArreglo }

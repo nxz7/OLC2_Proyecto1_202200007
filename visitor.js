@@ -84,6 +84,9 @@
 
  * @typedef {import('./nodos.js').DeclaracionFunction} DeclaracionFunction
 
+
+ * @typedef {import('./nodos.js').FuncionesArreglo} FuncionesArreglo
+
  */
 
 
@@ -343,6 +346,15 @@ export class BaseVisitor {
      */
     visitDeclaracionFunction(node) {
         throw new Error('Metodo visitDeclaracionFunction no implementado');
+    }
+    
+
+    /**
+     * @param {FuncionesArreglo} node
+     * @returns {any}
+     */
+    visitFuncionesArreglo(node) {
+        throw new Error('Metodo visitFuncionesArreglo no implementado');
     }
     
 }

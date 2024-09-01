@@ -1126,16 +1126,32 @@ export class InterpreterVisitor extends BaseVisitor {
     * @type {BaseVisitor['visitTypeof']}
     */
         visitTypeof(node) {
-            node.argumentos.accept(this);
+            if(Array.isArray(node.argumentos)){
+                const valor =node.argumentos.map(argumento => argumento.accept(this));
+                const tipo = this.checkAllSame(valor);
 
-            if (node.argumentos.tipo != null){
-                node.valor = node.argumentos.tipo;
-                node.tipo = "string";
-                return node.valor;
-            }else {
-                console.log("Error de tipado en typeof");
-                this.errores.addError("semantico","Error de tipado en typeof", node.location.end.line, node.location.end.column);
-                return null;
+                if (tipo != null){
+                    node.valor = tipo;
+                    node.tipo = "string";
+                    return node.valor;
+                }else{
+                    console.log("Error de tipado en typeof");
+                    this.errores.addError("semantico","Error de tipado en typeof", node.location.end.line, node.location.end.column);
+                    return null;
+                }
+                
+            }else{
+                node.argumentos.accept(this);
+                console.log("argumentos", node.argumentos);
+                if (node.argumentos.tipo != null){
+                    node.valor = node.argumentos.tipo;
+                    node.tipo = "string";
+                    return node.valor;
+                }else {
+                    console.log("Error de tipado en typeof");
+                    this.errores.addError("semantico","Error de tipado en typeof", node.location.end.line, node.location.end.column);
+                    return null;
+                }
             }
 
         }
@@ -1737,6 +1753,7 @@ export class InterpreterVisitor extends BaseVisitor {
                             this.errores.addError("semantico","Error de tipado en toUpperCase", node.location.end.line, node.location.end.column);
                             return null;
                         }
+
                     default:
                         const resultado = funcion.invoking(this, node.argumentos);
                         console.log("RESULTADO", resultado);
@@ -1760,6 +1777,90 @@ export class InterpreterVisitor extends BaseVisitor {
             this.errores.addError("semantico","Error llamada a funcion", node.location.end.line, node.location.end.column);
             return null;*/
         }
+
+
+
+                /**
+                 * @type {BaseVisitor['visitFuncionesArreglo']} 
+                 */
+        visitFuncionesArreglo(node){
+            console.log("FuncionesArreglo", node);
+            const funcion = node.funcion;
+            const nombreVariable= node.id;
+
+            const infoVariable = this.entornoActual.getVariable(nombreVariable);
+
+            if(infoVariable == null){
+                console.log(`Error: Arreglo/Matriz ${nombreVariable} no definida`);
+                this.errores.addError("semantico",`Error: Arreglo/Matriz ${nombreVariable} no definida`, node.location.end.line, node.location.end.column);
+                node.valor = null;
+                node.tipo = 'error';
+                return null;
+            }
+
+            if(infoVariable.simbType !== "arreglo" && infoVariable.simbType !== "Matriz"){
+                console.log(`Error: la variabble ${nombreVariable} no es un Arreglo/Matriz`);
+                this.errores.addError("semantico",`Error: la variabble ${nombreVariable} no es un Arreglo/Matriz`, node.location.end.line, node.location.end.column);
+                node.valor = null;
+                node.tipo = 'error';
+                return null;
+            }
+
+            let argzVar = [];
+            if(node.exp!==null){
+                argzVar = node.exp.map(arg => arg.accept(this));
+
+            }
+
+            if (funcion !== "length" && funcion !== "indexOf" && funcion !== "join") {
+                console.log("Error, la funcion no es invocable ");
+                this.errores.addError("semantico","la funcion no es invocable", node.location.end.line, node.location.end.column);
+            }
+
+            switch(funcion){   
+                case "length":
+                    if (Array.isArray(infoVariable.valor)) {
+                        node.valor = infoVariable.valor.length;
+                        node.tipo = "int";
+                    } else {
+                        node.valor = null;
+                        node.tipo = "error";
+                        console.log(`Error: Al momento de obtener LENGTH de ${nombreVariable}`);
+                        this.errores.addError("semantico", `Error: Al momento de obtener LENGTH de ${nombreVariable}`, node.location.end.line, node.location.end.column);
+                    }
+                    return node.valor;
+                
+                case "indexOf":
+                const array= infoVariable.valor;
+                
+                    if (Array.isArray(array)) {
+                        const index = array.indexOf(argzVar[0]);
+                        node.valor = index;
+                        node.tipo = "int";
+                        return index;
+                    }
+                    if(node.valor == null){
+                        console.log(`Error: Al momento de obtener indexOf de ${nombreVariable} `);
+                        this.errores.addError("semantico",`Error: Al momento de obtener indexOf de ${nombreVariable}`, node.location.end.line, node.location.end.column);
+                        return null;
+                    }
+                case "join":
+                    if (Array.isArray(infoVariable.valor)) {
+                        node.valor = infoVariable.valor.join('');
+                        node.tipo = "string";
+                    } else {
+                        node.valor = null;
+                        console.log(`Error: Al momento de obtener Join de ${nombreVariable}`);
+                        this.errores.addError("semantico", `Error: Al momento de obtener Join de ${nombreVariable}`, node.location.end.line, node.location.end.column);
+                    }
+                    return node.valor;
+
+                }
+
+
+
+        }
+
 
 
                 /**
