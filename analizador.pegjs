@@ -21,6 +21,7 @@
       'return': nodos.Return,
       'call': nodos.Call,
       'declaracionArreglo': nodos.DeclaracionArreglo,
+      'declaracionStructz': nodos.DeclaracionStructz,
       'typeof': nodos.Typeof,
       'assign': nodos.Assign,
       'asignacionArregloNew': nodos.AsignacionArregloNew,
@@ -31,7 +32,11 @@
       'brackets': nodos.Brackets,
       'declaracionVarTipo': nodos.DeclaracionVarTipo,
       'casesSwitch': nodos.CasesSwitch,
-      'declaracionFunction': nodos.DeclaracionFunction
+      'occurenceStruct': nodos.OccurenceStruct,
+      'declaracionFunction': nodos.DeclaracionFunction,
+      'getterStruct': nodos.GetterStruct,
+      'setterStruct': nodos.SetterStruct,
+      'creacionInstanceStruct': nodos.CreacionInstanceStruct
     }
 
     const nodo = new tipos[tipoNodo](props)
@@ -45,11 +50,12 @@ programa = _ decl:Declaracion* _ { return decl }
 //>MAIN
 Declaracion = decl:DecFunction _ { return decl }
             / decl:DecVariable _ { return decl }
+            / decl:DecStructz _ { return decl }
             / statement:Statement _ { return statement }
 
 
 DecFunction = tipoFunc:"void" _ id:ID _ "(" _ Parameters:Parametros? _ ")" _ brackets:Brackets { return crearNodo('declaracionFunction', { tipoFunc, id, Parameters: Parameters || [], brackets,res: null }) }
-        /tipoFunc:TiposVar res:Corchetes* _ id:ID _ "(" _ Parameters:Parametros? _ ")" _ brackets:Brackets { return crearNodo('declaracionFunction', { tipoFunc, id, Parameters: Parameters || [], brackets, res: res.length ||null  }) }
+            /tipoFunc:TiposVar res:Corchetes* _ id:ID _ "(" _ Parameters:Parametros? _ ")" _ brackets:Brackets { return crearNodo('declaracionFunction', { tipoFunc, id, Parameters: Parameters || [], brackets, res: res.length ||null  }) }
 
 
 //---------------declaracion de variables, clases y funciones
@@ -81,7 +87,12 @@ NestedSize = "[" _ exp:Expresion _ "]" _ tail:("[" _ expTail:Expresion _ "]")* {
 NestedArrayElements = head:(Expresion / MainArrayElements) tail:(_ "," _ (Expresion / MainArrayElements))* {
   return [head].concat(tail.map(function(element) { return element[3]; }));
 }
+//---------------DECLARACION STRUCTZZZZZZZ
+DecStructz = "struct" _ id:ID _ "{" _ decl:StructAttrbtz* _ "}" _ ";" { return crearNodo('declaracionStructz', { id, declaraciones: decl }) }
+            /idStruct:ID _ id:ID _"=" _ exp:Expresion _ ";" { return crearNodo('creacionInstanceStruct', { idStruct, id, exp }) }
 
+//----STRCUTS UNICAMENTE ATRIBUTOS
+StructAttrbtz= decl:DecVariable _ { return decl }
 
 //----------------aca van los print, if else y todo tipo de statements ---------------
 Statement = "System.out.println(" _ Listaexp:ListaExpresiones* _ ")" _ ";" { return crearNodo('print', { Listaexp }) }
@@ -137,7 +148,17 @@ IntTernario = "?" { return text() }
 Expresion = Assign
 
 Assign = id:ID  exp:NestedSize _ op:("="/"+="/"-=") _ assign:Expresion { return crearNodo('assignIndiceArreglo', { id, exp, assign, op}) }
-        /id:ID _ op:("="/"+="/"-=") _ assign:AsignarNewValue { return crearNodo('assign', { id, assign, op}) }
+        /toAssign:Call _ "=" _ valorAttr: AsignarNewValue { 
+        if (toAssign instanceof nodos.RefVar) {
+          return crearNodo('assign', { id:toAssign.id, assign:valorAttr, op:"="})
+        } 
+        if (!(toAssign instanceof nodos.GetterStruct)) {
+            console.log('Error: Para asignarle valor esta debe ser una propiedad de un objeto');
+        }
+        console.log("ddd")
+        console.log({toAssign})
+        return crearNodo('setterStruct', { structObj: toAssign.callObj, attribute: toAssign.attribute, valorAttr })}
+        /id:ID _ op:("+="/"-=") _ assign:AsignarNewValue { return crearNodo('assign', { id, assign, op}) }
         / Ternario
 
 AsignarNewValue =  "{" _ elements:NestedArrayElements _ "}" {return elements;}
@@ -228,17 +249,26 @@ Multiplicacion = izq:Unaria expansion:(
 Unaria = ope:("-"/"!") _ num:Unaria { return crearNodo('unaria', { op: ope, exp: num }) }
 / Call
 
-Call = callee:TypeOF _ params:("(" argumentos:Argz? ")" { return argumentos })* {
-  return params.reduce(
-    (callee, argumentos) => {
-      return crearNodo('call', { callee, argumentos: argumentos || [] })
-    },
-    callee
-  )
+Call = callee:(laDELobj/TypeOF) _ 
+Op:( "(" argumentos:Argz? ")" { return {argumentos, tipo: 'CallFuncion'} }
+  / ("." _ id:ID _ { return { id, tipo: 'get' } }))* 
+  { const OpTipo = Op.reduce(
+    (callObj, argumentos) => { const { tipo, id, argumentos:argg } = argumentos
+      if (tipo === 'CallFuncion') {
+        return crearNodo('call', { callee: callObj, argumentos: argg || [] })
+      } else if(tipo === 'get'){
+        return crearNodo('getterStruct', { callObj, attribute:id })
+      }},
+    callee)
+  return OpTipo
 }
+
+laDELobj= id:"Object.keys" { return crearNodo('refVar', { id }) }
 
 TypeOF = "typeof"  _ argumentos:TypeOF _  {return crearNodo('typeof', {  argumentos: argumentos || [] })}
         / Prim
+
+//---- getter y setter de los argumentos
 
 
 Argz = argum:ReturnElements _ argumentos:("," _ exp:ReturnElements { return exp })* { return [argum, ...argumentos] }
@@ -263,10 +293,23 @@ Prim =  floatN:tipoFloat {return crearNodo('Primitivos', { valor: floatN, tipo: 
   / "(" _ exp:Expresion _ ")" { return crearNodo('agrupacion', { exp }) }
   / "[" _ exp:Expresion _ "]" { return crearNodo('agrupacion', { exp }) }
   / "null" {return crearNodo('Primitivos', { valor: null, tipo: "null" })}
+  / id:ID "{" _ attributes:attStructs? _ "}" { return crearNodo('occurenceStruct', { id, attributes: attributes || [] }) }
   /id:ID "."funcion:("length"/"join"/"indexOf") exp:("(" exp: Argz? ")"{ return exp })? { return crearNodo('funcionesArreglo', { id, funcion, exp: exp ||null }) }
   / id:ID exp:NestedSize { return crearNodo('accederArreglo', { id, exp }) }
   / id:ID { return crearNodo('refVar', { id }) }
 
+
+
+
+attStructs = first:attItem rest:("," _ attItem)* {
+    return [first, ...rest.map(item => item[2])];
+}
+
+attItem = id:ID _ ":" _ prim:Prim {
+    return { id, valor: prim.valor, tipo: prim.tipo };
+}
+
+// "new" _ id:ID _ "(" _ attributes:Argz? _ ")" { return crearNodo('occurenceStruct', { id, attributes: attributes || [] }) }
 
 TiposVar = "int"{ return text() } 
 / "float"{ return text() } 

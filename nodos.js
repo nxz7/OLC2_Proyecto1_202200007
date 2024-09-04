@@ -1033,4 +1033,185 @@ export class FuncionesArreglo extends Expresion {
     }
 }
     
-export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Switch, CasesSwitch, For, Break, Continue, Return, Ternario, Brackets, Call, Typeof, DeclaracionArreglo, AsignacionArregloNew, AccederArreglo, AssignIndiceArreglo, DeclaracionFunction, FuncionesArreglo }
+export class DeclaracionStructz extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {string} options.id ID para buscar el struct
+ * @param {Expresion[]} options.declaraciones los atributos del struct
+    */
+    constructor({ id, declaraciones }) {
+        super();
+        
+        /**
+         * ID para buscar el struct
+         * @type {string}
+        */
+        this.id = id;
+
+
+        /**
+         * los atributos del struct
+         * @type {Expresion[]}
+        */
+        this.declaraciones = declaraciones;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitDeclaracionStructz(this);
+    }
+}
+    
+export class OccurenceStruct extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {string} options.id ID para buscar el struct
+ * @param {Expresion[]} options.attributes attrubutos del struct
+    */
+    constructor({ id, attributes }) {
+        super();
+        
+        /**
+         * ID para buscar el struct
+         * @type {string}
+        */
+        this.id = id;
+
+
+        /**
+         * attrubutos del struct
+         * @type {Expresion[]}
+        */
+        this.attributes = attributes;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitOccurenceStruct(this);
+    }
+}
+    
+export class GetterStruct extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion} options.callObj Objeto de la propiedad
+ * @param {string} options.attribute la propiedad - su id
+    */
+    constructor({ callObj, attribute }) {
+        super();
+        
+        /**
+         * Objeto de la propiedad
+         * @type {Expresion}
+        */
+        this.callObj = callObj;
+
+
+        /**
+         * la propiedad - su id
+         * @type {string}
+        */
+        this.attribute = attribute;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitGetterStruct(this);
+    }
+}
+    
+export class SetterStruct extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion} options.structObj el struct
+ * @param {string} options.attribute id del attribute
+ * @param {Expresion} options.valorAttr Valor del attribute
+    */
+    constructor({ structObj, attribute, valorAttr }) {
+        super();
+        
+        /**
+         * el struct
+         * @type {Expresion}
+        */
+        this.structObj = structObj;
+
+
+        /**
+         * id del attribute
+         * @type {string}
+        */
+        this.attribute = attribute;
+
+
+        /**
+         * Valor del attribute
+         * @type {Expresion}
+        */
+        this.valorAttr = valorAttr;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitSetterStruct(this);
+    }
+}
+    
+export class CreacionInstanceStruct extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {string} options.idStruct nombre del struct
+ * @param {string} options.id id que se le va a dar a la instancia
+ * @param {Expresion} options.exp Valor de la instancia
+    */
+    constructor({ idStruct, id, exp }) {
+        super();
+        
+        /**
+         * nombre del struct
+         * @type {string}
+        */
+        this.idStruct = idStruct;
+
+
+        /**
+         * id que se le va a dar a la instancia
+         * @type {string}
+        */
+        this.id = id;
+
+
+        /**
+         * Valor de la instancia
+         * @type {Expresion}
+        */
+        this.exp = exp;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitCreacionInstanceStruct(this);
+    }
+}
+    
+export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Switch, CasesSwitch, For, Break, Continue, Return, Ternario, Brackets, Call, Typeof, DeclaracionArreglo, AsignacionArregloNew, AccederArreglo, AssignIndiceArreglo, DeclaracionFunction, FuncionesArreglo, DeclaracionStructz, OccurenceStruct, GetterStruct, SetterStruct, CreacionInstanceStruct }

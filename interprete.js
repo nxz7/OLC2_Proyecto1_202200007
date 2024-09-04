@@ -6,6 +6,8 @@ import nodos, { Expresion } from './nodos.js'
 import { BreakException, ContinueException, ReturnException } from "./stcTranz.js";
 import { Invoke } from "./invoke.js";
 import { native } from "./nativeFunc.js";
+import { StructzClz } from "./StructzClz.js";
+import { OccInstance } from "./OccInstance.js";
 //import { AlienFunc } from "./AlienFunc.js";
 // SE COPIA DEL VISITOR.JS PARA REALIZAR LA IMPLEMENTACION 
 
@@ -496,6 +498,10 @@ export class InterpreterVisitor extends BaseVisitor {
             this.errores.addError("semantico",`Error: Variable ${nombreVariable} ya declarada en el entorno actual`, node.location.end.line, node.location.end.column);
             return null;
 
+        }else if ((valorVariable instanceof OccInstance)) {
+            console.log("InstanciaStruct:", node.id, valorVariable, "struct", "struct", node.location.end.line, node.location.end.column);
+            this.entornoActual.addVariable(node.id, valorVariable, "struct", "struct", node.location.end.line, node.location.end.column);
+            this.symbols.addVariable(node.id, valorVariable, "struct", "struct", node.location.end.line, node.location.end.column);
         }else{
 
             console.log("DeclaracionVariable(var):", nombreVariable, valorVariable, node.tipo, "variable", node.location.end.line, node.location.end.column);
@@ -599,7 +605,7 @@ export class InterpreterVisitor extends BaseVisitor {
     visitPrint(node) {
         node.Listaexp.forEach(exp => {
             let valorPrint = exp.accept(this);
-            console.log("Print", exp);
+            console.log("Print", node);
 
             if (exp.tipo === 'string' && exp.valor != null && exp.valor!= undefined && !Array.isArray(exp.valor) ) {
             valorPrint = valorPrint
@@ -609,8 +615,9 @@ export class InterpreterVisitor extends BaseVisitor {
             .replace(/\\n/g, '\n')
             .replace(/\\r/g, '\r');}
 
-            this.salida += valorPrint + '\n';
+            this.salida += valorPrint;
         });
+        this.salida += '\n';
     }
 
 //IF
@@ -779,7 +786,17 @@ export class InterpreterVisitor extends BaseVisitor {
                             this.entornoActual = previousEn;
                             node.valor = caseValue;
                             node.tipo = caseNode.valorCase.tipo;
-                            break; 
+                            //break; 
+                        }else if(matched == true){
+                            console.log("break");
+                            const previousEn = this.entornoActual;
+                            this.entornoActual = new Entorno(previousEn);
+                            //matched = true; //que si ya entro no salga
+                            caseNode.declaraciones.forEach(declacion => declacion.accept(this));
+                            this.entornoActual = previousEn;
+                            node.valor = caseValue;
+                            node.tipo = caseNode.valorCase.tipo;
+                            //break;
                         }
                 }
 
@@ -1675,6 +1692,7 @@ export class InterpreterVisitor extends BaseVisitor {
     * @type {BaseVisitor['visitCall']}
     */
         visitCall(node) {
+            console.log("!!VISITCALL", node);
             const funcion = node.callee.accept(this);
             
             const argzVar = node.argumentos.map(arg => arg.accept(this));
@@ -1753,6 +1771,19 @@ export class InterpreterVisitor extends BaseVisitor {
                             this.errores.addError("semantico","Error de tipado en toUpperCase", node.location.end.line, node.location.end.column);
                             return null;
                         }
+
+                    case "Object.keys":
+                        console.log("-----",node);
+                        const obj = node.argumentos[0].valor;
+                        if(!(obj instanceof OccInstance)){
+                            console.log("Error: el valor enviado no corresponde a una instancia de un struct");
+                            this.errores.addError("semantico","Error: el valor enviado no corresponde a una instancia de un struct", node.location.end.line, node.location.end.column);
+                            return null;
+                        }
+                        const valorST = Object.keys(obj.attributes).join(', ');
+                        node.valor = valorST;
+                        node.tipo = "string";
+                        return valorST;
 
                     default:
                         const resultado = funcion.invoking(this, node.argumentos);
@@ -1879,5 +1910,167 @@ export class InterpreterVisitor extends BaseVisitor {
 
                     this.entornoActual.addVariable(node.id, AlienInfo, node.tipoFunc, "funcion", node.location.end.line, node.location.end.column);
                     this.symbols.addVariable(node.id, AlienInfo.node.valor, node.tipoFunc, "funcion", node.location.end.line, node.location.end.column);
+                }
+
+//-------------STRUCTZ
+
+    /**
+     * @type {BaseVisitor['visitDeclaracionStructz']} 
+     */
+    visitDeclaracionStructz(node) {
+        const attributes={}
+        //node.declaraciones.map(declaracion => declaracion.accept(this));
+        console.log("!!DeclaracionStructz", node);
+
+        if(node.declaraciones[0].exp!==null){
+            console.log("Error en declaracion de structs - recuerde que las declaracion de los structs incluyen unicamente la estructura");
+            this.errores.addError("semantico","Error en declaracion de structs - recuerde que las declaracion de los structs incluyen unicamente la estructura", node.location.end.line, node.location.end.column);
+            return null;
+        }
+
+        if(node.declaraciones.length==0){
+            console.log("Error en declaracion de structs - no hay estructura declarada");
+            this.errores.addError("semantico","Error en declaracion de structs - no hay estructura declarada", node.location.end.line, node.location.end.column);
+            return null;
+        }
+//siempre se declara unicamente la estructura
+        node.declaraciones.forEach(declaracion => {
+                attributes[declaracion.id] = {
+                id: declaracion.id,
+                valor: null,        // null es el struct
+                tipo: declaracion.tipoz
+            };
+        });
+
+        console.log("!ATTRIBUTES", attributes);
+        const structZ = new StructzClz(node.id, attributes);
+
+        this.entornoActual.addVariable(node.id, structZ, "struct", "struct", node.location.end.line, node.location.end.column);
+        this.symbols.addVariable(node.id, structZ, "struct", "struct", node.location.end.line, node.location.end.column);
+    }
+
+    /**
+     * @type {BaseVisitor['visitOccurenceStruct']} 
+     */
+    visitOccurenceStruct(node){
+        //console.log("!!OccurenceStruct", node);
+        const structZ = this.entornoActual.getVariable(node.id);
+        console.log("beforeSTRUCTZ", structZ);
+
+        const attributesNuevos = node.attributes;
+
+        
+        if(structZ == null){
+            console.log("Error en la instancia de struct");
+            this.errores.addError("semantico","Error en la instancia de struct - referencia a struct no declarado", node.location.end.line, node.location.end.column);
+            return null
+        }
+        if(structZ.valor == null){
+            console.log("Error en la instancia de struct");
+            this.errores.addError("semantico","Error en la instancia de struct - referencia a struct no declarado", node.location.end.line, node.location.end.column);
+            return null
+        }
+        if (!(structZ.valor instanceof StructzClz)) {
+            console.log('El elemento que se desea instanciar no es un struct');
+            this.errores.addError("semantico","El elemento que se desea instanciar no es un struct", node.location.end.line, node.location.end.column);
+            return null;
+        } else {
+            //structZ.valor.attributes = attributesNuevos;
+            //this.entornoActual.updateVariable(node.id, structZ, "struct", "struct", node.location.end.line, node.location.end.column)
+            //console.log("actualizada:", attributesNuevos);
+            console.log("actualizada:", node.attributes);
+            console.log(structZ.valor.invoking(this, node.attributes))
+            return structZ.valor.invoking(this, node.attributes);
+        }
+    }
+
+
+
+        /**
+    * @type {BaseVisitor['visitGetterStruct']}
+    */
+        visitGetterStruct(node) {
+
+            const OcurrenceSt = node.callObj.accept(this);
+            
+            console.log("getterStruct", node);
+            console.log(OcurrenceSt);
+
+            if (!(OcurrenceSt instanceof OccInstance)) {
+                console.log(OcurrenceSt);
+                console.log('No es posible obtener una attribute de algo que no es una instancia');
+                this.errores.addError("semantico","No es posible obtener una attribute de algo que no es una instancia", node.location.end.line, node.location.end.column);
+            }
+            if(OcurrenceSt == null){
+                console.log("Error en la instancia de struct, por ende error al refereciarlo");
+                this.errores.addError("semantico","Error en la instancia de struct, por ende error al refereciarlo(GET)", node.location.end.line, node.location.end.column);
+                return null;
+            }
+            console.log(node.attribute);
+            console.log("YAYAYAYA",OcurrenceSt.get(node.attribute));
+            node.valor = OcurrenceSt.get(node.attribute).valor;
+            node.tipo = OcurrenceSt.get(node.attribute).tipo;
+            return OcurrenceSt.get(node.attribute).valor;
+        }
+
+        /**
+    * @type {BaseVisitor['visitSetterStruct']}
+    */
+        visitSetterStruct(node) {
+
+            console.log("setterStruct", node);
+            const OcurrenceSt = node.structObj.accept(this);
+
+            if (!(OcurrenceSt instanceof OccInstance)) {
+                console.log('No se puede dar un valor a algo que no corresponde a una instancia de un struct');
+                this.errores.addError("semantico","No se puede dar un valor a algo que no corresponde a una instancia de un struct", node.location.end.line, node.location.end.column);
+            }
+    
+            const valor = node.valorAttr.accept(this);
+            node.valor = valor;
+            node.tipo = node.valorAttr.tipo;
+            console.log(node.tipo, node.valor, node.attribute);
+    
+            OcurrenceSt.set(node.attribute, valor, node.tipo);
+    
+            return valor;
+        }
+
+
+                /**
+    * @type {BaseVisitor['visitCreacionInstanceStruct']}
+    */
+                visitCreacionInstanceStruct(node) {
+                    const structPlantilla = this.entornoActual.getVariable(node.idStruct);
+
+                    if (structPlantilla == null) {
+                        console.log(`Error: Struct ${node.idStruct} no definido`);
+                        this.errores.addError("semantico",`Error: Struct ${node.idStruct} no definido`, node.location.end.line, node.location.end.column);
+                        return null;
+                    }
+                    if(node.idStruct !== node.exp.id){
+                        console.log(`Error: La instancia no coincide con el struct`);
+                        this.errores.addError("semantico",`Error: La instancia no coincide con el struct`, node.location.end.line, node.location.end.column);
+                        return null;
+                    }
+                    if (this.reservedWords.includes(node.id)) {
+                        console.log(`Error: '${node.id}' es una palabra reservada y no puede ser usada como nombre de variable.`);
+                        this.errores.addError("semantico", `Error: '${node.id}'es una palabra reservada y no puede ser usada como nombre de variable.`, node.location.end.line, node.location.end.column);
+                        return null;
+                    }
+
+                    //const valorVariable = node.exp.accept(this);
+                    console.log("og",node);
+                    console.log(structPlantilla);
+                    const valorVariable = node.exp.accept(this);
+                    console.log("vv",valorVariable);
+                    node.valor = valorVariable;
+                    node.tipo = "struct";
+                    
+                    console.log("InstanciaStruct:", node.id, valorVariable, "struct", "struct", node.location.end.line, node.location.end.column);
+                    this.entornoActual.addVariable(node.id, valorVariable, "struct", "struct", node.location.end.line, node.location.end.column);
+                    this.symbols.addVariable(node.id, valorVariable, "struct", "struct", node.location.end.line, node.location.end.column);
+                    
+                    
                 }
 }

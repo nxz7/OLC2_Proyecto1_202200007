@@ -50,8 +50,12 @@ export const native = {
     () => 1,
     (interprete, value) => {
         return String(value).toUpperCase();
-    })
+    }),
 
-
+    'Object.keys': new NativeFunc(
+        () => 1,
+        (interprete, value) => {
+            return;
+        })
 
 }

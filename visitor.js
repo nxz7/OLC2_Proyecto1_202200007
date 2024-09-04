@@ -87,6 +87,21 @@
 
  * @typedef {import('./nodos.js').FuncionesArreglo} FuncionesArreglo
 
+
+ * @typedef {import('./nodos.js').DeclaracionStructz} DeclaracionStructz
+
+
+ * @typedef {import('./nodos.js').OccurenceStruct} OccurenceStruct
+
+
+ * @typedef {import('./nodos.js').GetterStruct} GetterStruct
+
+
+ * @typedef {import('./nodos.js').SetterStruct} SetterStruct
+
+
+ * @typedef {import('./nodos.js').CreacionInstanceStruct} CreacionInstanceStruct
+
  */
 
 
@@ -355,6 +370,51 @@ export class BaseVisitor {
      */
     visitFuncionesArreglo(node) {
         throw new Error('Metodo visitFuncionesArreglo no implementado');
+    }
+    
+
+    /**
+     * @param {DeclaracionStructz} node
+     * @returns {any}
+     */
+    visitDeclaracionStructz(node) {
+        throw new Error('Metodo visitDeclaracionStructz no implementado');
+    }
+    
+
+    /**
+     * @param {OccurenceStruct} node
+     * @returns {any}
+     */
+    visitOccurenceStruct(node) {
+        throw new Error('Metodo visitOccurenceStruct no implementado');
+    }
+    
+
+    /**
+     * @param {GetterStruct} node
+     * @returns {any}
+     */
+    visitGetterStruct(node) {
+        throw new Error('Metodo visitGetterStruct no implementado');
+    }
+    
+
+    /**
+     * @param {SetterStruct} node
+     * @returns {any}
+     */
+    visitSetterStruct(node) {
+        throw new Error('Metodo visitSetterStruct no implementado');
+    }
+    
+
+    /**
+     * @param {CreacionInstanceStruct} node
+     * @returns {any}
+     */
+    visitCreacionInstanceStruct(node) {
+        throw new Error('Metodo visitCreacionInstanceStruct no implementado');
     }
     
 }
