@@ -52,6 +52,10 @@ export class StructzClz extends Invoke{
         Object.entries(args).forEach(([id, arg]) => {
             console.log("ID",arg.id);
             console.log("tipo", arg.tipo);
+
+            if (typeof arg.valor === 'string' && arg.valor.startsWith('"') && arg.valor.endsWith('"')) {
+                arg.valor = arg.valor.slice(1, -1);
+            }
             console.log("VALOR", arg.valor);
             CurrentInstance.set(arg.id, arg.valor, arg.tipo);
         });

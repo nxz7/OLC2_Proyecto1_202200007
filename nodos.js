@@ -1214,4 +1214,53 @@ export class CreacionInstanceStruct extends Expresion {
     }
 }
     
-export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Switch, CasesSwitch, For, Break, Continue, Return, Ternario, Brackets, Call, Typeof, DeclaracionArreglo, AsignacionArregloNew, AccederArreglo, AssignIndiceArreglo, DeclaracionFunction, FuncionesArreglo, DeclaracionStructz, OccurenceStruct, GetterStruct, SetterStruct, CreacionInstanceStruct }
+export class ForEach extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {string} options.id ID del tempo
+ * @param {string} options.tipo tipo del temp
+ * @param {string} options.id2 ID del arreglo
+ * @param {string} options.forEachBracket valores de acceso
+    */
+    constructor({ id, tipo, id2, forEachBracket }) {
+        super();
+        
+        /**
+         * ID del tempo
+         * @type {string}
+        */
+        this.id = id;
+
+
+        /**
+         * tipo del temp
+         * @type {string}
+        */
+        this.tipo = tipo;
+
+
+        /**
+         * ID del arreglo
+         * @type {string}
+        */
+        this.id2 = id2;
+
+
+        /**
+         * valores de acceso
+         * @type {string}
+        */
+        this.forEachBracket = forEachBracket;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitForEach(this);
+    }
+}
+    
+export default { Expresion, Operacion, Unaria, Agrupacion, Primitivos, DeclaracionVar, DeclaracionVarTipo, RefVar, Print, ExpresionStatement, Assign, If, While, Switch, CasesSwitch, For, Break, Continue, Return, Ternario, Brackets, Call, Typeof, DeclaracionArreglo, AsignacionArregloNew, AccederArreglo, AssignIndiceArreglo, DeclaracionFunction, FuncionesArreglo, DeclaracionStructz, OccurenceStruct, GetterStruct, SetterStruct, CreacionInstanceStruct, ForEach }

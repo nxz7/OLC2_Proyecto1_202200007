@@ -36,7 +36,8 @@
       'declaracionFunction': nodos.DeclaracionFunction,
       'getterStruct': nodos.GetterStruct,
       'setterStruct': nodos.SetterStruct,
-      'creacionInstanceStruct': nodos.CreacionInstanceStruct
+      'creacionInstanceStruct': nodos.CreacionInstanceStruct,
+      'forEach': nodos.ForEach
     }
 
     const nodo = new tipos[tipoNodo](props)
@@ -93,6 +94,9 @@ DecStructz = "struct" _ id:ID _ "{" _ decl:StructAttrbtz* _ "}" _ ";" { return c
 
 //----STRCUTS UNICAMENTE ATRIBUTOS
 StructAttrbtz= decl:DecVariable _ { return decl }
+            /idStruct:ID _ id:ID _ ";"{ return crearNodo('creacionInstanceStruct', { idStruct, id, exp: null }) }
+
+//cambio! 
 
 //----------------aca van los print, if else y todo tipo de statements ---------------
 Statement = "System.out.println(" _ Listaexp:ListaExpresiones* _ ")" _ ";" { return crearNodo('print', { Listaexp }) }
@@ -102,6 +106,7 @@ Statement = "System.out.println(" _ Listaexp:ListaExpresiones* _ ")" _ ";" { ret
       falseBracket:(
         _ "else" _ falseBracket:Statement { return falseBracket } 
       )? { return crearNodo('if', { condition, trueBracket, falseBracket }) }
+    / "for" _ "("_ id:TempForEach _ ":"_ id2:Prim _ ")" _ forEachBracket:Statement { return crearNodo('forEach', { id, id2, forEachBracket}) }
     / "for" _ "(" _ initialization:FirstFor?  _ condition:Expresion _ ";" _ update:Expresion _ ")" _ forBracket:Statement {
       return crearNodo('for', { initialization, condition, update, forBracket })}
     / "switch" _ "(" _ exp:Expresion _ ")" _ "{" _ cases:Case* _ Default:DefaultCase? _ "}" { return crearNodo('switch', { exp, cases, Default }) }
@@ -115,7 +120,7 @@ Brackets="{" _ decl:Declaracion* _ "}" { return crearNodo('brackets', { declarac
 
 
 
-
+TempForEach = tipoz:TiposVar _ id:ID { return crearNodo('declaracionVarTipo', { id, exp:null, tipoz }) }
 
 //-----------------PARAMETROS DE FUNCIONES-------------------
 
@@ -149,14 +154,8 @@ Expresion = Assign
 
 Assign = id:ID  exp:NestedSize _ op:("="/"+="/"-=") _ assign:Expresion { return crearNodo('assignIndiceArreglo', { id, exp, assign, op}) }
         /toAssign:Call _ "=" _ valorAttr: AsignarNewValue { 
-        if (toAssign instanceof nodos.RefVar) {
-          return crearNodo('assign', { id:toAssign.id, assign:valorAttr, op:"="})
-        } 
-        if (!(toAssign instanceof nodos.GetterStruct)) {
-            console.log('Error: Para asignarle valor esta debe ser una propiedad de un objeto');
-        }
-        console.log("ddd")
-        console.log({toAssign})
+        if (toAssign instanceof nodos.RefVar) {return crearNodo('assign', { id:toAssign.id, assign:valorAttr, op:"="})} 
+        if (!(toAssign instanceof nodos.GetterStruct)) {console.log('Error: Para asignarle valor esta debe ser una propiedad de un objeto');}
         return crearNodo('setterStruct', { structObj: toAssign.callObj, attribute: toAssign.attribute, valorAttr })}
         /id:ID _ op:("+="/"-=") _ assign:AsignarNewValue { return crearNodo('assign', { id, assign, op}) }
         / Ternario

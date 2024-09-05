@@ -21,6 +21,7 @@ export class InterpreterVisitor extends BaseVisitor {
         this.errores = errores;
 
         this.flowControlContinue = null;
+        this.ForEachContinue = null;
         //LA RESPUESTA QUE SE VA A MOSTRAR en sonsola
         this.salida = '';
         this.reservedWords = [
@@ -714,6 +715,85 @@ export class InterpreterVisitor extends BaseVisitor {
     }
 
 
+
+/**
+ * @type {BaseVisitor['visitForEach']}
+ */
+visitForEach(node) {
+    const startingEn = this.entornoActual;
+
+
+    const prevFlow = this.flowControlContinue;
+    this.flowControlContinue = node.update;
+
+    const arrayToIterate = node.id2.accept(this);
+    console.log(arrayToIterate)
+    node.id.accept(this);
+    console.log(node)
+    const dimensionForEach = this.getArrayDimensions(arrayToIterate);
+
+    if(dimensionForEach!= 1){
+        console.log("Error: Se esperaba un array de una dimension en el foreach");
+        this.errores.addError("semantico",`Error: Se esperaba un array de una dimension en el foreach`, node.location.end.line, node.location.end.column);
+        return null;
+    }
+
+    const TipoArr = this.entornoActual.getVariable(node.id2.id);
+    console.log("2222", TipoArr.tipo, node.id.tipoz);
+    if (TipoArr.tipo !== node.id.tipoz){
+        console.log("Error: Se esperaba un array de tipo "+node.id.tipoz+" en el foreach");
+        this.errores.addError("semantico",`Error: Se esperaba un array de tipo ${node.id.tipoz} en el foreach`, node.location.end.line, node.location.end.column);
+        return null;
+    }
+
+    try {
+            if (Array.isArray(arrayToIterate)) {
+
+                arrayToIterate.forEach(element => {
+
+                    this.entornoActual.updateVariable(node.id.id,element);
+                    this.symbols.updateVariable(node.id.id, element);
+                    const imp_ForEach_bw = new nodos.Brackets({
+                        declaraciones: [
+                            node.forEachBracket,
+                            //node.update
+                        ]
+                    });
+                    console.log("1forEach", imp_ForEach_bw);
+                    //console.log("2forEach",  imp_ForEach_bw.accept(this));
+                    imp_ForEach_bw.accept(this);
+                });
+                //imp_ForEach_bw.accept(this);
+            } else {
+
+                this.errores.addError("semantico", `Se esperaba un array pero se obtuvo ${typeof arrayToIterate}`, node.location.end.line, node.location.end.column);
+            }
+
+            // flow previo, pero no se si es necesario -> foreach no maneja continues como for
+            this.flowControlContinue = prevFlow;
+
+        }catch (error) {
+            this.entornoActual = startingEn;
+        // aca solo se rompe el while
+            if (error instanceof BreakException) {
+                console.log('break');
+                return
+            }
+
+            //llevar la cuenta de que se tiene que continuar - rec
+            if (error instanceof ContinueException) {
+                this.errores.addError("semantico",`continue dentro de un switch`, node.location.end.line, node.location.end.column);
+                return;
+            }
+            throw error;
+
+    }
+}
+
+
+
+
+
     //-------- TRANSFERENCIA -> CONTINUE, RETURN Y BREAK
         /**
      * @type {BaseVisitor['visitBreak']}
@@ -821,6 +901,7 @@ export class InterpreterVisitor extends BaseVisitor {
             
             if (error instanceof ContinueException) {
                 this.errores.addError("semantico",`continue dentro de un switch`, node.location.end.line, node.location.end.column);
+                return;
                 
             }
 
@@ -1938,9 +2019,11 @@ export class InterpreterVisitor extends BaseVisitor {
                 attributes[declaracion.id] = {
                 id: declaracion.id,
                 valor: null,        // null es el struct
-                tipo: declaracion.tipoz
+                tipo: declaracion.tipoz !== undefined ? declaracion.tipoz : null
             };
         });
+
+
 
         console.log("!ATTRIBUTES", attributes);
         const structZ = new StructzClz(node.id, attributes);
@@ -2060,7 +2143,7 @@ export class InterpreterVisitor extends BaseVisitor {
                     }
 
                     //const valorVariable = node.exp.accept(this);
-                    console.log("og",node);
+                    console.log("!og",node);
                     console.log(structPlantilla);
                     const valorVariable = node.exp.accept(this);
                     console.log("vv",valorVariable);

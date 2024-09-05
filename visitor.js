@@ -102,6 +102,9 @@
 
  * @typedef {import('./nodos.js').CreacionInstanceStruct} CreacionInstanceStruct
 
+
+ * @typedef {import('./nodos.js').ForEach} ForEach
+
  */
 
 
@@ -415,6 +418,15 @@ export class BaseVisitor {
      */
     visitCreacionInstanceStruct(node) {
         throw new Error('Metodo visitCreacionInstanceStruct no implementado');
+    }
+    
+
+    /**
+     * @param {ForEach} node
+     * @returns {any}
+     */
+    visitForEach(node) {
+        throw new Error('Metodo visitForEach no implementado');
     }
     
 }
