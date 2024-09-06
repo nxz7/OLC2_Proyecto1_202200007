@@ -1356,10 +1356,12 @@ visitForEach(node) {
 
             }else if(node.exp.tipoNew == undefined && node.exp.id !== undefined){
                 //referencia a otra variable
-                const ValorArreglo = node.exp.accept(this);
-                const dimensionExp = this.getArrayDimensions(ValorArreglo);
+                const valorArregloFK = node.exp.accept(this);
+                const dimensionExp = this.getArrayDimensions(valorArregloFK);
 
-                //console.log("+++variable encontrada:", ValorArreglo, "dimensiones:", dimensionExp, "valor:", node.exp.valor, "tipo:", node.exp.tipo);
+                const ValorArreglo = JSON.parse(JSON.stringify(valorArregloFK));
+
+                console.log("+++variable encontrada:", ValorArreglo, "dimensiones:", dimensionExp, "valor:", node.exp.valor, "tipo:", node.exp.tipo);
 
                 if ((dimensionDeclarada == dimensionExp) && (node.exp.tipo == node.tipoz)) {
                     node.tipo = node.exp.tipo;
@@ -1725,6 +1727,7 @@ visitForEach(node) {
 
                         case "=":
                             NuevoArreglo = this.modifyArrayElement(valorArreglo, valorIndice, valorNuevo);
+                            console.log(node.id, NuevoArreglo);
                             this.entornoActual.updateVariable(node.id, NuevoArreglo);
                             this.symbols.updateVariable(node.id, NuevoArreglo);
                             node.valor = NuevoArreglo;
