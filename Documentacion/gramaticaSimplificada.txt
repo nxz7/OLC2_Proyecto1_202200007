@@ -1,0 +1,158 @@
+programa = _ decl:Declaracion* _ 
+
+//>MAIN
+Declaracion = decl:DecFunction _ 
+            / decl:DecVariable _ 
+            / decl:DecStructz _ 
+            / statement:Statement _ 
+
+
+DecFunction = tipoFunc:"void" _ id:ID _ "(" _ Parameters:Parametros? _ ")" _ brackets:Brackets 
+            /tipoFunc:TiposVar res:Corchetes* _ id:ID _ "(" _ Parameters:Parametros? _ ")" _ brackets:Brackets 
+//---------------declaracion de variables, clases y funciones
+DecVariable = "var" _ id:ID _ "=" _ exp:Expresion _ ";" 
+            / DeclaracionArray
+            / tipoz:TiposVar _ id:ID _  TipadoValor:("=" _ TipadoValor:Expresion _)?_";" 
+
+//>>>>>>>>>>>>>>>>>>>>>>ARREGLOS>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//dimension de acuerdo a los corchetes (array o matrix )
+DeclaracionArray = tipoz:TiposVar "[]" dims:Corchetes* _ id:ID _ "=" _ exp:MainArrayElements _ ";" 
+Corchetes ="[]" 
+
+MainArrayElements = "{" _ elements:NestedArrayElements _ "}" 
+                  /"new" _ tipoNew:TiposVar exp:NestedSize 
+                  / id:ID 
+
+NestedSize = "[" _ exp:Expresion _ "]" _ tail:("[" _ expTail:Expresion _ "]")* 
+//lleno de expresiones o mas arreglos(matriz)- recursivo
+NestedArrayElements = head:(Expresion / MainArrayElements) tail:(_ "," _ (Expresion / MainArrayElements))* 
+
+//---------------DECLARACION STRUCTZZZZZZZ
+DecStructz = "struct" _ id:ID _ "{" _ decl:StructAttrbtz* _ "}" _ ";" 
+            /idStruct:ID _ id:ID _"=" _ exp:Expresion _ ";"
+
+//----STRCUTS UNICAMENTE ATRIBUTOS
+StructAttrbtz= decl:DecVariable _ 
+            /idStruct:ID _ id:ID _ ";"
+
+
+//----------------aca van los print, if else y todo tipo de statements ---------------
+Statement = "System.out.println(" _ Listaexp:ListaExpresiones* _ ")" _ ";" 
+    / Brackets:Brackets
+    / "while" _ "(" _ condition:Expresion _ ")" _ whileBracket:Statement 
+    / "if" _ "(" _ condition:Expresion _ ")" _ trueBracket:Statement falseBracket:( _ "else" _ falseBracket:Statement)? 
+    / "for" _ "("_ id:TempForEach _ ":"_ id2:Prim _ ")" _ forEachBracket:Statement 
+    / "for" _ "(" _ initialization:FirstFor?  _ condition:Expresion _ ";" _ update:Expresion _ ")" _ forBracket:Statement 
+    / "switch" _ "(" _ exp:Expresion _ ")" _ "{" _ cases:Case* _ Default:DefaultCase? _ "}" 
+    / "break" _ ";"
+    / "continue" _ ";"
+    / "return" _ exp:ReturnElements? _ ";" 
+    / exp:Expresion _ ";" 
+
+//SEPARARA PARA BRACKETS
+Brackets="{" _ decl:Declaracion* _ "}"
+
+TempForEach = tipoz:TiposVar _ id:ID 
+
+//-----------------PARAMETROS DE FUNCIONES-------------------
+
+Parametros = first:Parametro _ rest:("," _ param:Parametro 
+Parametro = tipo:TiposVar _ id:ID 
+// SEPARAR PRIMERA CONDICION DE FOR
+
+ListaExpresiones = "," _ exp:Expresion _ 
+		/exp: Expresion _ 
+
+// para arreglar que no vengan dos ;; y de error
+FirstFor = decl:DecVariable 
+        / exp:Expresion _ ";" 
+        / ";"
+
+Case = "case" _ valorCase:Expresion _ ":" _ caseBracket:Declaracion* 
+
+DefaultCase = "default" _ ":" _ defaultBracket:Declaracion*  
+
+//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+//restriccion de NO empezar con un numero
+ID = [a-zA-Z_][a-zA-Z0-9_]*
+String = "\"" ( "\\" "\"" / [^\"] )* "\"" 
+Charr = "\'" [^\']* "\'"
+IntTernario = "?" 
+//---------------------------------------
+
+Expresion = Assign
+
+Assign = id:ID  exp:NestedSize _ op:("="/"+="/"-=") _ assign:Expresion 
+        /toAssign:Call _ "=" _ valorAttr: AsignarNewValue
+        /id:ID _ op:("+="/"-=") _ assign:AsignarNewValue 
+        / Ternario
+
+AsignarNewValue =  "{" _ elements:NestedArrayElements _ "}" 
+                /"new" _ tipoNew:TiposVar exp:NestedSize 
+                /  exp:Expresion  
+
+Ternario = condition:logicoOr _ IntTernario _ TrueB:Expresion _ ":" _ FalseB:Expresion 
+/ logicoOr
+
+logicoOr = izq:logicoAnd expansion:(_ op:("||") _ der:logicoAnd)*
+
+logicoAnd = izq:DesIgualdad expansion:(_ op:("&&") _ der:DesIgualdad )* 
+
+DesIgualdad = izq:Relacional expansion:( _ op:("!=" / "==") _ der:Relacional )* 
+
+Relacional = izq:SumaSub expansion:(_ op:(">=" / "<="/">" / "<") _ der:SumaSub)*
+
+SumaSub = izq:MulDivMod expansion:(_ op:("+" / "-") _ der:MulDivMod)*
+
+MulDivMod = izq:Unaria expansion:( _ op:("*" / "/" /"%") _ der:Unaria )* 
+
+Unaria = ope:("-"/"!") _ num:Unaria 
+/ Call
+
+Call = callee:(laDELobj/TypeOF) _ 
+Op:( "(" argumentos:Argz? ")" 
+  / ("." _ id:ID _ ))* 
+
+laDELobj= id:"Object.keys" 
+
+TypeOF = "typeof"  _ argumentos:TypeOF _  
+        / Prim
+
+Argz = argum:ReturnElements _ argumentos:("," _ exp:ReturnElements 
+
+ReturnElements = "{" _ elements:NestedArrayElements _ "}" 
+                /"new" _ tipoNew:TiposVar exp:NestedSize 
+                /  exp:Expresion  
+
+tipoFloat =[0-9]+( "." [0-9]+ ) 
+tipoInt = [0-9]+ 
+
+Prim =  floatN:tipoFloat 
+  / intN:tipoInt 
+  / str:String 
+  / char:Charr 
+  /"true" 
+  /"false" 
+  / "(" _ exp:Expresion _ ")" 
+  / "[" _ exp:Expresion _ "]" 
+  / "null" 
+  / id:ID "{" _ attributes:attStructs? _ "}" 
+  /id:ID "."funcion:("length"/"join"/"indexOf") exp:("(" exp: Argz? ")"
+  / id:ID exp:NestedSize 
+  / id:ID 
+
+attStructs = first:attItem rest:("," _ attItem)* 
+attItem = id:ID _ ":" _ prim:Prim 
+
+TiposVar = "int"
+/ "float"
+/ "boolean" 
+/ "char" 
+/ "string" 
+
+_ = ([ \t\n\r] / Comentarios)* 
+
+Comentarios = "//" (![\n] .)*
+            / "/*" (!("*/") .)* "*/"
+

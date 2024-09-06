@@ -3131,7 +3131,7 @@ function peg$parse(input, options) {
     var s0, s1, s2, s3, s4, s5, s6, s7;
 
     s0 = peg$currPos;
-    s1 = peg$parseSuma();
+    s1 = peg$parseSumaSub();
     if (s1 !== peg$FAILED) {
       s2 = [];
       s3 = peg$currPos;
@@ -3163,7 +3163,7 @@ function peg$parse(input, options) {
       }
       if (s5 !== peg$FAILED) {
         s6 = peg$parse_();
-        s7 = peg$parseSuma();
+        s7 = peg$parseSumaSub();
         if (s7 !== peg$FAILED) {
           peg$savedPos = s3;
           s3 = peg$f62(s1, s5, s7);
@@ -3206,7 +3206,7 @@ function peg$parse(input, options) {
         }
         if (s5 !== peg$FAILED) {
           s6 = peg$parse_();
-          s7 = peg$parseSuma();
+          s7 = peg$parseSumaSub();
           if (s7 !== peg$FAILED) {
             peg$savedPos = s3;
             s3 = peg$f62(s1, s5, s7);
@@ -3229,11 +3229,11 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parseSuma() {
+  function peg$parseSumaSub() {
     var s0, s1, s2, s3, s4, s5, s6, s7;
 
     s0 = peg$currPos;
-    s1 = peg$parseMultiplicacion();
+    s1 = peg$parseMulDivMod();
     if (s1 !== peg$FAILED) {
       s2 = [];
       s3 = peg$currPos;
@@ -3247,7 +3247,7 @@ function peg$parse(input, options) {
       }
       if (s5 !== peg$FAILED) {
         s6 = peg$parse_();
-        s7 = peg$parseMultiplicacion();
+        s7 = peg$parseMulDivMod();
         if (s7 !== peg$FAILED) {
           peg$savedPos = s3;
           s3 = peg$f64(s1, s5, s7);
@@ -3272,7 +3272,7 @@ function peg$parse(input, options) {
         }
         if (s5 !== peg$FAILED) {
           s6 = peg$parse_();
-          s7 = peg$parseMultiplicacion();
+          s7 = peg$parseMulDivMod();
           if (s7 !== peg$FAILED) {
             peg$savedPos = s3;
             s3 = peg$f64(s1, s5, s7);
@@ -3295,7 +3295,7 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parseMultiplicacion() {
+  function peg$parseMulDivMod() {
     var s0, s1, s2, s3, s4, s5, s6, s7;
 
     s0 = peg$currPos;

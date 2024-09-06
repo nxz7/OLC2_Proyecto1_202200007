@@ -208,8 +208,8 @@ DesIgualdad = izq:Relacional expansion:(
   )
 }
 
-Relacional = izq:Suma expansion:(
-  _ op:(">=" / "<="/">" / "<") _ der:Suma { return { tipo: op, der } }
+Relacional = izq:SumaSub expansion:(
+  _ op:(">=" / "<="/">" / "<") _ der:SumaSub { return { tipo: op, der } }
 )* { 
   return expansion.reduce(
     (previousOp, actualOp) => {
@@ -221,8 +221,8 @@ Relacional = izq:Suma expansion:(
 }
 
 
-Suma = izq:Multiplicacion expansion:(
-  _ op:("+" / "-") _ der:Multiplicacion { return { tipo: op, der } }
+SumaSub = izq:MulDivMod expansion:(
+  _ op:("+" / "-") _ der:MulDivMod{ return { tipo: op, der } }
 )* { 
   return expansion.reduce(
     (previousOp, actualOp) => {
@@ -233,7 +233,7 @@ Suma = izq:Multiplicacion expansion:(
   )
 }
 
-Multiplicacion = izq:Unaria expansion:(
+MulDivMod = izq:Unaria expansion:(
   _ op:("*" / "/" /"%") _ der:Unaria { return { tipo: op, der } }
 )* {
     return expansion.reduce(
